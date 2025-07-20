@@ -115,6 +115,6 @@ STATIC_ROOT = 'static'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-COMPANY_NAME ="The three big"
+COMPANY_NAME ="De drie biggetjes"
 SLOGAN = "Always on time"
 CONTACTS = "NY Pinguin street 6"
