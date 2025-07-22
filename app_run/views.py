@@ -32,7 +32,7 @@ class FilterAthletesClass(viewsets.ReadOnlyModelViewSet):
         if type:
             if type == "coach":
                 return qs.filter(is_staff=True)
-            elif type == "athelete":
+            elif type == "athlete":
                 return qs.filter(is_staff=False)  
         return qs      
         
