@@ -12,14 +12,14 @@ class RunSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):    
     type = serializers.SerializerMethodField()
     class Meta:
-        model = User        
+        model = User          
         fields = ["id","type","username","date_joined","last_name","first_name"]
 
     def get_type(self,obj):
         type = None
-        if obj.is_staff is True:   
+        if obj.is_staff is True:             
             type = "coach"      
-        elif obj.is_staff is False:
+        elif obj.is_staff is False:            
             type = "athlete"
         return type
             
