@@ -9,9 +9,19 @@ class RunSerializer(serializers.ModelSerializer):
         model = Run        
         fields = ["id","athlete","created_at","comment"]
 
-class UserSerializer(serializers.ModelSerializer):
-    # type = serializers.ReadOnlyField()
-    # # type = serializers.CharField(max_length=10)
+class UserSerializer(serializers.ModelSerializer):    
+    type = serializers.SerializerMethodField()
     class Meta:
         model = User        
-        fields = ["id","username","date_joined","last_name","first_name"]
+        fields = ["id","type","username","date_joined","last_name","first_name"]
+
+    def get_type(self,obj):
+        type = None
+        if obj.is_staff is True:   
+            type = "coach"      
+        elif obj.is_staff is False:
+            type = "athlete"
+        return type
+            
+        
+          
