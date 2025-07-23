@@ -1,10 +1,9 @@
+from app_run.models import Run
 from django.conf import settings
 from django.contrib.auth.models import User
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
-from app_run.models import Run
 
 from .serializers import RunSerializer, UserSerializer
 
@@ -18,9 +17,9 @@ def get_intro(request):
     }    
     return Response(company_dict)
 
-class RunViewSetClass(viewsets.ModelViewSet):
-    queryset = Run.objects.all()
-    serializer_class = RunSerializer
+class RunViewSetClass(viewsets.ModelViewSet):         
+    queryset = Run.objects.select_related('athlete').all()    
+    serializer_class = RunSerializer    
 
 class FilterAthletesClass(viewsets.ReadOnlyModelViewSet):   
     serializer_class = UserSerializer     
