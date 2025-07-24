@@ -6,10 +6,16 @@ from django.db import models
 #         return self.get_queryset().filter(athlete__user_is_superuser=False)
     
 class Run(models.Model):
+    class Status(models.TextChoices):
+        INIT = "init", "Init"
+        IN_PROGRES = "in_progress", "Started"
+        FINISHED = "finished", "Finished"
+
+    
     athlete = models.ForeignKey(User,on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    comment = models.TextField()   
+    comment = models.TextField() 
+    status = models.CharField(choices=Status,default=Status.INIT)  
 
     def __str__(self):        
         return self.athlete.username
-
