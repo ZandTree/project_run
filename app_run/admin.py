@@ -4,6 +4,6 @@ from .models import Run
 
 
 class RunAdmin(admin.ModelAdmin):
-    list_display = ['id','athlete_id','athlete__username','created_at','comment']
+    list_display = ['id','athlete_id',"status",'athlete__username','created_at','comment']
 
 admin.site.register(Run,RunAdmin)    

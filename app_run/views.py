@@ -1,10 +1,12 @@
 from app_run.models import Run
 from django.conf import settings
 from django.contrib.auth.models import User
-from rest_framework import serializers, viewsets
+from django.shortcuts import get_object_or_404
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .serializers import RunSerializer, UserSerializer
 
@@ -40,4 +42,29 @@ class FilterAthletesClass(viewsets.ReadOnlyModelViewSet):
             elif type == "athlete":
                 return qs.filter(is_staff=False)  
         return qs      
-        
+
+class RunStart(APIView):
+    def post(self, request, run_id, format=None):               
+        try:
+            run = get_object_or_404(Run, id=run_id)  
+            if run.status == "init":           
+                run.status = "in_progress"
+                run.save()
+                return Response(status=status.HTTP_200_OK)  
+            elif run.status == "in_progress" or run.status=="finished":
+                return Response(status=status.HTTP_400_BAD_REQUEST)         
+        except Run.DoesNotExist:            
+            return Response(status=status.HTTP_404_NOT_FOUND)
+    
+class RunStop (APIView):
+    def post(self, request, run_id, format=None):
+        try:
+            run = get_object_or_404(Run, id=run_id)
+            if run.status == "in_progress":
+                run.status = "finished"
+                run.save()
+                return Response(status=status.HTTP_200_OK)
+            elif run.status == "init":
+                return Response(status=status.HTTP_400_BAD_REQUEST)        
+        except Run.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
