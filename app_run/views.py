@@ -50,7 +50,7 @@ class RunStart(APIView):
             if run.status == "init":           
                 run.status = "in_progress"
                 run.save()
-                return Response(status=status.HTTP_200_OK)  
+                return Response({"status":run.status},status=status.HTTP_200_OK)  
             elif run.status == "in_progress" or run.status=="finished":
                 return Response(status=status.HTTP_400_BAD_REQUEST)         
         except Run.DoesNotExist:            
@@ -63,7 +63,7 @@ class RunStop (APIView):
             if run.status == "in_progress":
                 run.status = "finished"
                 run.save()
-                return Response(status=status.HTTP_200_OK)
+                return Response({"status":run.status},status=status.HTTP_200_OK)
             elif run.status == "init":
                 return Response(status=status.HTTP_400_BAD_REQUEST)        
         except Run.DoesNotExist:
