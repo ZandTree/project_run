@@ -1,13 +1,16 @@
-from app_run.models import Run
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import api_view
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from app_run.models import Run
+
+from .pagination import CustomPagination
 from .serializers import RunSerializer, UserSerializer
 
 
@@ -20,18 +23,33 @@ def get_intro(request):
     }    
     return Response(company_dict)
 
-class RunViewSetClass(viewsets.ModelViewSet):         
+class RunViewSetClass(viewsets.ModelViewSet):    
+    """
+    api/runs/...
+    """     
     queryset = Run.objects.select_related('athlete').all()    
-    serializer_class = RunSerializer    
+    serializer_class = RunSerializer 
+    pagination_class = CustomPagination
+    filter_backends = [DjangoFilterBackend,OrderingFilter]    
+    ordering_fields = ['created_at',]
+    filterset_fields = ['status','athlete']
+       
 
-class FilterAthletesClass(viewsets.ReadOnlyModelViewSet):   
+class FilterAthletesClass(viewsets.ReadOnlyModelViewSet): 
+    """
+    all coaches and athletes (no su): order, filter, search, pagination
+    /api/users/
+    "search" default; change to "q" via settings in drf dict SEARCH_PARAM 
+    """  
     serializer_class = UserSerializer     
     queryset = User.objects.filter(is_superuser=False)
     type = serializers.SerializerMethodField()  
 
-    # "search" default; change to "q" via settings drf dict SEARCH_PARAM 
-    filter_backends = [SearchFilter]
-    search_fields = ['first_name', 'last_name']
+    
+    filter_backends = [SearchFilter,OrderingFilter]
+    search_fields = ['first_name', 'last_name','date_joined']
+    pagination_class = CustomPagination
+
     
     def get_queryset(self):   
         qs = self.queryset         
@@ -44,6 +62,9 @@ class FilterAthletesClass(viewsets.ReadOnlyModelViewSet):
         return qs      
 
 class RunStart(APIView):
+    """
+    initate start run
+    """
     def post(self, request, run_id, format=None):               
         try:
             run = get_object_or_404(Run, id=run_id)  
@@ -58,6 +79,9 @@ class RunStart(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
     
 class RunStop (APIView):
+    """
+    end run
+    """
     def post(self, request, run_id, format=None):
         try:
             run = get_object_or_404(Run, id=run_id)
