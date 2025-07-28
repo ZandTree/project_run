@@ -22,7 +22,7 @@ class Run(models.Model):
 
 class AthleteInfo(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE)
-    weight = models.FloatField(blank=True,null=True)
+    weight = models.IntegerField(blank=True,null=True)
     goals = models.TextField(blank=True,default="")
     
     def __str__(self):
