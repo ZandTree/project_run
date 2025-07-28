@@ -33,10 +33,11 @@ class RunSerializer(serializers.ModelSerializer):
         model = Run        
         fields = ["id","athlete","created_at","comment","athlete_data","status"]
 
-class AthleteInfoSerializer(serializers.ModelSerializer):
+class AthleteInfoSerializer(serializers.ModelSerializer):    
+    user_id = serializers.IntegerField(source='user.id',read_only=True)
     class Meta:
         model = AthleteInfo        
-        fields = ["id","weight","goals"]
+        fields = ["user_id","weight","goals"]
 
     def validate_weight(self,value):        
         if 900 < value  or value < 0:  

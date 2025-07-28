@@ -110,11 +110,10 @@ class CreateUpdatePersonalInfo(APIView):
         obj,created = AthleteInfo.objects.update_or_create(
                 user=user
             )
-        ser = AthleteInfoSerializer(obj,data=request.data)  
-        
+        ser = AthleteInfoSerializer(obj,data=request.data)          
         if ser.is_valid(raise_exception=True):   
-            data = ser.data         
             ser.save()
+            data = ser.data         
             return Response(data=data,status=status.HTTP_201_CREATED) 
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
