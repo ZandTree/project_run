@@ -45,7 +45,7 @@ class AthleteInfoSerializer(serializers.ModelSerializer):
              raise serializers.ValidationError(
                 'This field should be an integer')
 
-        if 900 < value  or value < 0:                   
+        if 900 <= value  or value <= 0:                   
             raise serializers.ValidationError(
                 'This value can not be less than zero and more than 900 kg.')
         return value
