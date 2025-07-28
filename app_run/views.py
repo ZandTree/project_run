@@ -100,21 +100,22 @@ class CreateUpdatePersonalInfo(APIView):
         user = get_object_or_404(User,id=user_id)        
         obj,created = AthleteInfo.objects.get_or_create(
             user=user) 
-        data = AthleteInfoSerializer(obj).data        
+        data = AthleteInfoSerializer(obj).data               
         return Response(data,status=status.HTTP_200_OK)
     
     def put(self,request,user_id):           
         user = get_object_or_404(User,id=user_id)         
         if not user:            
             return Response(status=status.HTTP_404_NOT_FOUND)        
-        obj,created = AthleteInfo.objects.update_or_create(
+        object,created = AthleteInfo.objects.update_or_create(
                 user=user
-            )
-        ser = AthleteInfoSerializer(obj,data=request.data)          
+            )        
+        ser = AthleteInfoSerializer(object,data=request.data)  
+
         if ser.is_valid(raise_exception=True):   
             ser.save()
-            data = ser.data         
-            return Response(data=data,status=status.HTTP_201_CREATED) 
+            data = ser.data 
+            return Response(data=data,status=status.HTTP_201_CREATED)            
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
          

@@ -41,12 +41,11 @@ class AthleteInfoSerializer(serializers.ModelSerializer):
         fields = ["user_id","weight","goals"]
 
     def validate_weight(self,value): 
-        if isinstance(value,int):
+        if not isinstance(value,int):
              raise serializers.ValidationError(
-                'This field can not be less than zero and more than 500 kg.')
+                'This field should be an integer')
 
-        if 900 < value  or value < 0:  
-            print("raising exception")      
+        if 900 < value  or value < 0:                   
             raise serializers.ValidationError(
-                'This field can not be less than zero and more than 500 kg.')
+                'This value can not be less than zero and more than 900 kg.')
         return value
