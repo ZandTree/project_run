@@ -8,10 +8,10 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app_run.models import Run
+from app_run.models import AthleteInfo, Run
 
 from .pagination import CustomPagination
-from .serializers import RunSerializer, UserSerializer
+from .serializers import AthleteInfoSerializer, RunSerializer, UserSerializer
 
 
 @api_view(['GET'])
@@ -94,3 +94,28 @@ class RunStop (APIView):
                 return Response(status=status.HTTP_400_BAD_REQUEST)        
         except Run.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+class CreateUpdatePersonalInfo(APIView):
+    def get(self,request,user_id):        
+        user = get_object_or_404(User,id=user_id)        
+        obj,created = AthleteInfo.objects.get_or_create(
+            user=user) 
+        data = AthleteInfoSerializer(obj).data        
+        return Response(data,status=status.HTTP_200_OK)
+    
+    def put(self,request,user_id):           
+        user = get_object_or_404(User,id=user_id)         
+        if not user:            
+            return Response(status=status.HTTP_404_NOT_FOUND)        
+        obj,created = AthleteInfo.objects.update_or_create(
+                user=user
+            )
+        ser = AthleteInfoSerializer(obj,data=request.data)  
+        
+        if ser.is_valid(raise_exception=True):   
+            data = ser.data         
+            ser.save()
+            return Response(data=data,status=status.HTTP_201_CREATED) 
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+         
