@@ -100,9 +100,7 @@ class CreateUpdatePersonalInfo(APIView):
         user = get_object_or_404(User,id=user_id)        
         obj,created = AthleteInfo.objects.get_or_create(
             user=user) 
-        data = AthleteInfoSerializer(obj).data 
-        if created:
-            return Response(data=data,status=status.HTTP_201_CREATED)                 
+        data = AthleteInfoSerializer(obj).data                       
         return Response(data,status=status.HTTP_200_OK)
     
     def put(self,request,user_id):           
