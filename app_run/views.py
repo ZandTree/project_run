@@ -8,10 +8,11 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app_run.models import AthleteInfo, Run
+from app_run.models import AthleteInfo, Challenge, Run
 
 from .pagination import CustomPagination
-from .serializers import AthleteInfoSerializer, RunSerializer, UserSerializer
+from .serializers import (AthleteInfoSerializer, ChallengeSerializer,
+                          RunSerializer, UserSerializer)
 
 
 @api_view(['GET'])
@@ -34,15 +35,14 @@ class RunViewSetClass(viewsets.ModelViewSet):
     ordering_fields = ['created_at',]
     filterset_fields = ['status','athlete']
        
-
 class FilterAthletesClass(viewsets.ReadOnlyModelViewSet): 
     """
     all coaches and athletes (no su): order, filter, search, pagination
     /api/users/
     "search" default; change to "q" via settings in drf dict SEARCH_PARAM 
     """  
-    serializer_class = UserSerializer     
-    queryset = User.objects.filter(is_superuser=False)
+    serializer_class = UserSerializer        
+    queryset = User.objects.filter(is_superuser=False)    
     type = serializers.SerializerMethodField()  
 
     
@@ -52,7 +52,8 @@ class FilterAthletesClass(viewsets.ReadOnlyModelViewSet):
 
     
     def get_queryset(self):   
-        qs = self.queryset         
+        qs = self.queryset 
+        print(self.queryset.count())        
         type = self.request.query_params.get("type",None) 
         if type:
             if type == "coach":
@@ -84,10 +85,14 @@ class RunStop (APIView):
     """
     def post(self, request, run_id, format=None):
         try:
+            print("request with run_id ",run_id)
             run = get_object_or_404(Run, id=run_id)
             if run.status == "in_progress":
                 run.status = "finished"
                 run.save()
+                challenge, _ = Challenge.objects.get_or_create(
+                    athlete = run.athlete, full_name = "Сделай 10 Забегов!"
+                )                
                 data = {"status":run.status}
                 return Response(data,status=status.HTTP_200_OK)
             else:
@@ -122,3 +127,14 @@ class CreateUpdatePersonalInfo(APIView):
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
          
+
+@api_view(['GET'])
+def showChallenges(request):
+    athlete_id = request.query_params.get("athlete",None)      
+    if athlete_id:
+        athlete = get_object_or_404(User,id=athlete_id)
+        lst = athlete.challenges.all()       
+    else:
+        lst = Challenge.objects.all()
+    data = ChallengeSerializer(lst,many=True).data
+    return Response(data=data,status=status.HTTP_200_OK)

@@ -1,14 +1,14 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .models import AthleteInfo, Run
+from .models import AthleteInfo, Challenge, Run
 
 
 class UserSerializer(serializers.ModelSerializer):    
     type = serializers.SerializerMethodField()
     runs_finished = serializers.SerializerMethodField()
     class Meta:
-        model = User          
+        model = User       
         fields = ["id","type","runs_finished","username","date_joined","last_name","first_name"]
 
     def get_type(self,obj)->str|None:
@@ -34,6 +34,7 @@ class RunSerializer(serializers.ModelSerializer):
         fields = ["id","athlete","created_at","comment","athlete_data","status"]
 
 class AthleteInfoSerializer(serializers.ModelSerializer):    
+    
     user_id = serializers.IntegerField(source='user.id',read_only=True)
     
     class Meta:
@@ -49,3 +50,8 @@ class AthleteInfoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'This value can not be less than zero and more than 900 kg.')
         return value
+    
+class ChallengeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Challenge 
+        fields = "__all__"
