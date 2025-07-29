@@ -81,18 +81,19 @@ class RunStart(APIView):
     
 class RunStop (APIView):
     """
-    end run
+    stopping runs/<run_id>/stop/
     """
     def post(self, request, run_id, format=None):
-        try:
-            print("request with run_id ",run_id)
+        try:            
             run = get_object_or_404(Run, id=run_id)
             if run.status == "in_progress":
                 run.status = "finished"
                 run.save()
-                challenge, _ = Challenge.objects.get_or_create(
-                    athlete = run.athlete, full_name = "Сделай 10 Забегов!"
-                )                
+                user = run.athlete                
+                if user.runs.filter(status="finished").count()%10 == 0:
+                    Challenge.objects.create(
+                        athlete = run.athlete, full_name = "Сделай 10 Забегов!"
+                    )                
                 data = {"status":run.status}
                 return Response(data,status=status.HTTP_200_OK)
             else:
