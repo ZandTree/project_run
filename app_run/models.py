@@ -25,8 +25,17 @@ class AthleteInfo(models.Model):
         return f"user id = {self.user.id}"
     
 class Challenge(models.Model):
+
     full_name = models.CharField(max_length=120)
     athlete = models.ForeignKey(User,on_delete=models.CASCADE,related_name="challenges")   
 
     def __str__(self):
         return f"{self.full_name} for user {self.athlete}" 
+    
+class Position(models.Model):
+    run = models.ForeignKey(Run,on_delete=models.CASCADE,related_name="positions")
+    latitude = models.FloatField(max_length = 6)
+    longitude = models.FloatField(max_length = 7)
+
+    def __str__(self):
+        return f"{self.run} is parallel(w): {self.latitude} - medidian: {self.longitude}"
