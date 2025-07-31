@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .models import AthleteInfo, Challenge, Run
+from .models import AthleteInfo, Challenge, Position, Run
+from .utils import check_float_digits
 
 
 class UserSerializer(serializers.ModelSerializer):    
@@ -55,3 +56,40 @@ class ChallengeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Challenge 
         fields = "__all__"
+
+class PositionSerializer(serializers.ModelSerializer):       
+    class Meta:
+        model = Position         
+        fields = ["id","run","latitude","longitude"]
+
+    def validate_latitude(self,value)->float:
+        """
+        float latitude val [-90.0, 90.0] and max 4 digits after "."
+        """
+        if value >= 90.0 or value <= -90.0:
+            raise serializers.ValidationError('This field should be a float in range [-90.0,90.0]')
+        if not check_float_digits(value):        
+            raise serializers.ValidationError(
+                'Too many digits in float part')        
+        return value
+       
+    def validate_longitude(self,value)->float:
+        """
+        float longitude val [-180.0,180] and max 4 digits after "."
+        """
+        if value >= 180.0 or value <= -180.0:
+            raise serializers.ValidationError('This field should be a float in range [-180.0,180.0]')
+        if not check_float_digits(value):        
+            raise serializers.ValidationError(
+                'Too many digits in float part')        
+        return value  
+       
+    def validate_run(self,value)->float:
+        """
+        run (via FK) should be in status "in_progress"
+        """        
+        if value.status != "in_progress":            
+            raise serializers.ValidationError(
+                'run should be in progress status')
+        return value     
+    

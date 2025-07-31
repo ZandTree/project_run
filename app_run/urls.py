@@ -1,12 +1,18 @@
 from django.urls import include, path
 from rest_framework import routers
 
-from .views import (CreateUpdatePersonalInfo, FilterAthletesClass, RunStart,
-                    RunStop, RunViewSetClass, get_intro,showChallenges)
+from .views import (CreateUpdatePersonalInfo, FilterAthletesClass,
+                    PositionViewSet, RunStart, RunStop, RunViewSetClass,
+                    get_intro, showChallenges)
+
+# from .views import (CreateUpdatePersonalInfo, FilterAthletesClass, RunStart,
+#                     RunStop, RunViewSetClass, get_intro, showChallenges)
+
 
 router = routers.DefaultRouter()
 router.register(r'users',FilterAthletesClass,basename='users')
 router.register(r'runs',RunViewSetClass,basename='runs')
+router.register(r'positions',PositionViewSet,basename='positions')
 
 urlpatterns = [    
     path('company_details/',get_intro),
@@ -15,6 +21,7 @@ urlpatterns = [
     path('athlete_info/<user_id>/',CreateUpdatePersonalInfo.as_view()),    
     path('challenges/',showChallenges),    
     path('',include(router.urls),name="runs"),
-    path('',include(router.urls),name='users'),       
+    path('',include(router.urls),name='users'),    
+    path('',include(router.urls),name='positions')       
     
 ]

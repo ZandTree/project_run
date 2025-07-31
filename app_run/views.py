@@ -8,11 +8,11 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app_run.models import AthleteInfo, Challenge, Run
+from app_run.models import AthleteInfo, Challenge, Position, Run
 
 from .pagination import CustomPagination
 from .serializers import (AthleteInfoSerializer, ChallengeSerializer,
-                          RunSerializer, UserSerializer)
+                          PositionSerializer, RunSerializer, UserSerializer)
 
 
 @api_view(['GET'])
@@ -52,8 +52,7 @@ class FilterAthletesClass(viewsets.ReadOnlyModelViewSet):
 
     
     def get_queryset(self):   
-        qs = self.queryset 
-        print(self.queryset.count())        
+        qs = self.queryset                
         type = self.request.query_params.get("type",None) 
         if type:
             if type == "coach":
@@ -139,3 +138,19 @@ def showChallenges(request):
         lst = Challenge.objects.all()
     data = ChallengeSerializer(lst,many=True).data
     return Response(data=data,status=status.HTTP_200_OK)
+
+
+class PositionViewSet(viewsets.ModelViewSet):
+    serializer_class = PositionSerializer        
+    queryset = Position.objects.select_related("run").all()
+    def get_queryset(self):   
+        qs = self.queryset               
+        run_id = self.request.query_params.get("run",None) 
+        if run_id:            
+            run_obj = get_object_or_404(Run,id=run_id)
+            qs = run_obj.positions.all() 
+            print(qs.count())     
+        print(qs.count())           
+        return qs    
+            
+    

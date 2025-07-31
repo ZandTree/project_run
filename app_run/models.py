@@ -14,7 +14,7 @@ class Run(models.Model):
     status = models.CharField(choices=Status,default=Status.INIT)  
 
     def __str__(self):        
-        return self.athlete.username
+        return str(self.id)
 
 class AthleteInfo(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE)
@@ -34,8 +34,8 @@ class Challenge(models.Model):
     
 class Position(models.Model):
     run = models.ForeignKey(Run,on_delete=models.CASCADE,related_name="positions")
-    latitude = models.FloatField(max_length = 6)
-    longitude = models.FloatField(max_length = 7)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
 
     def __str__(self):
         return f"{self.run} is parallel(w): {self.latitude} - medidian: {self.longitude}"
