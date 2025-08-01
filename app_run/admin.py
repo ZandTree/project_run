@@ -4,7 +4,7 @@ from .models import AthleteInfo, Challenge, Position, Run
 
 
 class RunAdmin(admin.ModelAdmin):
-    list_display = ['id','athlete_id',"status",'athlete__username','created_at','comment',"user_type"]
+    list_display = ['id','athlete_id',"status",'athlete__username','created_at','comment',"distance"]
     list_select_related = ("athlete",)
     list_filter = ["status"]
 
