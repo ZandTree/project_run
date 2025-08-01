@@ -13,6 +13,7 @@ from app_run.models import AthleteInfo, Challenge, Position, Run
 from .pagination import CustomPagination
 from .serializers import (AthleteInfoSerializer, ChallengeSerializer,
                           PositionSerializer, RunSerializer, UserSerializer)
+from .utils import get_total_distance
 
 
 @api_view(['GET'])
@@ -83,6 +84,11 @@ class RunStop (APIView):
     stopping runs/<run_id>/stop/
     """
     def post(self, request, run_id, format=None):
+        """
+        1. assigns run status to "finished"
+        2. each iteration 10 run's creates a new obj Challenge Model via division;
+        3. if geo data present |=> calc distance (float) of a given Run obj
+        """
         try:            
             run = get_object_or_404(Run, id=run_id)
             if run.status == "in_progress":
@@ -93,6 +99,9 @@ class RunStop (APIView):
                     Challenge.objects.create(
                         athlete = run.athlete, full_name = "Сделай 10 Забегов!"
                     )                
+                run_postions = run.positions.all()               
+                run.distance = get_total_distance(run_postions)                
+                run.save()
                 data = {"status":run.status}
                 return Response(data,status=status.HTTP_200_OK)
             else:
@@ -148,9 +157,7 @@ class PositionViewSet(viewsets.ModelViewSet):
         run_id = self.request.query_params.get("run",None) 
         if run_id:            
             run_obj = get_object_or_404(Run,id=run_id)
-            qs = run_obj.positions.all() 
-            print(qs.count())     
-        print(qs.count())           
+            qs = run_obj.positions.all()             
         return qs    
             
     
