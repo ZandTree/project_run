@@ -1,4 +1,7 @@
+from django.db.models import Sum
 from geopy.distance import distance
+
+from app_run.models import Run
 
 
 def check_float_digits(value:float)->bool:
@@ -35,7 +38,12 @@ def get_total_distance(qs)->float:
     else:
         raise ValueError("Not enough data to calculate the distance") 
     
+def calc_total_distance(obj):   
+    total =Run.objects.filter(athlete=obj.athlete).aggregate(summ=Sum('distance'))
+    return total["summ"]
 
+    
+    
 
     
 

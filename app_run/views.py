@@ -13,7 +13,7 @@ from app_run.models import AthleteInfo, Challenge, Position, Run
 from .pagination import CustomPagination
 from .serializers import (AthleteInfoSerializer, ChallengeSerializer,
                           PositionSerializer, RunSerializer, UserSerializer)
-from .utils import get_total_distance
+from .utils import calc_total_distance, get_total_distance
 
 
 @api_view(['GET'])
@@ -103,6 +103,9 @@ class RunStop (APIView):
                 run.distance = get_total_distance(run_postions)                
                 run.save()
                 data = {"status":run.status}
+                total = calc_total_distance(run)
+                if  total >= 50:                    
+                    Challenge.objects.create(full_name="Пробеги 50 километров!",athlete=run.athlete)  
                 return Response(data,status=status.HTTP_200_OK)
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)        
