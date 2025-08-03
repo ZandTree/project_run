@@ -34,9 +34,23 @@ class Challenge(models.Model):
         return f"{self.full_name} for user {self.athlete}" 
     
 class Position(models.Model):
+
     run = models.ForeignKey(Run,on_delete=models.CASCADE,related_name="positions")
     latitude = models.FloatField()
     longitude = models.FloatField()
 
     def __str__(self):
         return f"{self.run} is parallel(w): {self.latitude} - medidian: {self.longitude}"
+    
+class CollectibleItem(models.Model):
+    name = models.CharField(max_length=120)    
+    uid = models.CharField(max_length=120)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    picture = models.URLField()
+    value = models.SmallIntegerField()
+
+    def __str__(self):
+        return self.name
+
+
