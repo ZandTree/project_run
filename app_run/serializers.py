@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .models import AthleteInfo, Challenge, Position, Run
+from .models import AthleteInfo, Challenge, CollectibleItem, Position, Run
 from .utils import check_float_digits
 
 
@@ -93,3 +93,8 @@ class PositionSerializer(serializers.ModelSerializer):
                 'run should be in progress status')
         return value     
     
+
+class CollectibleItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CollectibleItem
+        fields = "__all__"

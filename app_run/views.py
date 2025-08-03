@@ -8,11 +8,13 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app_run.models import AthleteInfo, Challenge, Position, Run
+from app_run.models import (AthleteInfo, Challenge, CollectibleItem, Position,
+                            Run)
 
 from .pagination import CustomPagination
 from .serializers import (AthleteInfoSerializer, ChallengeSerializer,
-                          PositionSerializer, RunSerializer, UserSerializer)
+                          CollectibleItemSerializer, PositionSerializer,
+                          RunSerializer, UserSerializer)
 from .utils import calc_total_distance, get_total_distance
 
 
@@ -164,3 +166,7 @@ class PositionViewSet(viewsets.ModelViewSet):
         return qs    
             
     
+
+class ShowCollectibleItemSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = CollectibleItemSerializer       
+    queryset = CollectibleItem.objects.all()    
