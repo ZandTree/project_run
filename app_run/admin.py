@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import AthleteInfo, Challenge, Position, Run
+from .models import AthleteInfo, Challenge, CollectibleItem, Position, Run
 
 
 class RunAdmin(admin.ModelAdmin):
@@ -20,8 +20,11 @@ class ChellangeAdmin(admin.ModelAdmin):
 
 class PositionAdmin(admin.ModelAdmin):
     list_display = ['id','latitude','longitude','run']    
-    
+class CollectibleItemAdmin(admin.ModelAdmin):
+    list_display = ['id','name','latitude','longitude','picture'] 
+
 admin.site.register(Run,RunAdmin)    
 admin.site.register(Challenge,ChellangeAdmin)
 admin.site.register(AthleteInfo, AthleteInfoAdmin)    
 admin.site.register(Position, PositionAdmin)    
+admin.site.register(CollectibleItem,CollectibleItemAdmin)    

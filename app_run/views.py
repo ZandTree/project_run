@@ -1,3 +1,6 @@
+import csv
+from pathlib import Path
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
@@ -10,12 +13,13 @@ from rest_framework.views import APIView
 
 from app_run.models import (AthleteInfo, Challenge, CollectibleItem, Position,
                             Run)
+from project_run.settings.base import BASE_DIR
 
 from .pagination import CustomPagination
 from .serializers import (AthleteInfoSerializer, ChallengeSerializer,
                           CollectibleItemSerializer, PositionSerializer,
                           RunSerializer, UserSerializer)
-from .utils import calc_total_distance, get_total_distance
+from .utils import calc_total_distance, create_dict, get_total_distance
 
 
 @api_view(['GET'])
@@ -170,3 +174,39 @@ class PositionViewSet(viewsets.ModelViewSet):
 class ShowCollectibleItemSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CollectibleItemSerializer       
     queryset = CollectibleItem.objects.all()    
+
+from openpyxl import load_workbook
+
+
+@api_view(['POST'])
+def create_items(request):
+    """
+    validating length of each row;
+    creating dict data: zipping  model_fields(keys) and row (values)
+    """    
+    file_items = request.FILES.get("file")
+    if file_items:
+        wb = load_workbook(filename=file_items) 
+        ctx = wb.active
+        
+        model_fields = ('name', 'uid', 'value', 'latitude', 'longitude', 'picture')             
+        invalid_rows = []
+        for row in ctx.iter_rows(min_row=2,values_only=True):
+            if row[0]:
+                data = create_dict(model_fields,row)                                                           
+                row_ser = CollectibleItemSerializer(data=data)
+                if row_ser.is_valid():
+                    row_ser.save()                    
+                else:                    
+                    invalid_rows.append(list(row))
+          
+        if invalid_rows:
+            return Response(data=invalid_rows)
+        else:
+            return Response(status=status.HTTP_201_CREATED)
+        
+    else:
+        return Response(status=status.HTTP_400_BAD_REQUEST) 
+
+
+

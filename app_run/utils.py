@@ -42,9 +42,11 @@ def calc_total_distance(obj):
     total =Run.objects.filter(athlete=obj.athlete).aggregate(summ=Sum('distance'))
     return total["summ"]
 
-    
-    
 
+def create_dict(tuple_keys,tuple_values)->dict:
+    """ return dict with keys from iterables: tuple keys and tuple values """     
+    return dict(zip(tuple_keys,tuple_values)) 
+   
     
 
     

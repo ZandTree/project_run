@@ -98,3 +98,30 @@ class CollectibleItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CollectibleItem
         fields = "__all__"
+
+    def validate_latitude(self,value)->float:
+        """
+        float latitude val [-90.0, 90.0] 
+        """
+        if value >= 90.0 or value <= -90.0:
+            print("longitude val invalid")
+            raise serializers.ValidationError('This field should be a float in range [-90.0,90.0]')             
+        return value
+       
+    def validate_longitude(self,value)->float:
+        """
+        float longitude val [-180.0,180] 
+        """
+        if value >= 180.0 or value <= -180.0:
+            print("longitude val invalid")
+            raise serializers.ValidationError('This field should be a float in range [-180.0,180.0]')              
+        return value 
+         
+    def validate_value(self,value)->int:
+        """
+        value of the item should be an int
+        """        
+        if not int(value):            
+            raise serializers.ValidationError('Value should be an integer')              
+        return value      
+   
