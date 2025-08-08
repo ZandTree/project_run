@@ -121,8 +121,7 @@ class RunStop (APIView):
                 data = {"status":run.status}
                 total = calc_total_distance(run)
                 if  total >= 50:                    
-                    Challenge.objects.create(full_name="Пробеги 50 километров!",athlete=run.athlete) 
-                calc_items_100(run)     
+                    Challenge.objects.create(full_name="Пробеги 50 километров!",athlete=run.athlete)                     
                 return Response(data,status=status.HTTP_200_OK)
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)        
@@ -188,9 +187,7 @@ class PositionViewSet(viewsets.ModelViewSet):
         runner_coords = (data["latitude"],data["longitude"])        
         items = CollectibleItem.objects.all() 
         for item in items:
-            item_coords = (item.latitude,item.longitude)
-            print("item coords ",item_coords)
-            print("runner coords  ",runner_coords)
+            item_coords = (item.latitude,item.longitude)            
             dist = distance(item_coords,runner_coords).meters            
             if dist <= 100:   
                 print("found macht ...") 
