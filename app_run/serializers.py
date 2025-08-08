@@ -21,11 +21,16 @@ class UserSerializer(serializers.ModelSerializer):
         return type
     def get_runs_finished(self,obj)->int:
         return obj.runs.filter(status='finished').count()
-            
+
+
+
+           
 class AthleteSerializer(serializers.ModelSerializer):    
     class Meta:
         model = User          
         fields = ["id","username","last_name","first_name"]
+
+
     
             
 class RunSerializer(serializers.ModelSerializer):
@@ -33,6 +38,8 @@ class RunSerializer(serializers.ModelSerializer):
     class Meta:
         model = Run        
         fields = ["id","athlete","created_at","comment","athlete_data","status","distance"]
+
+
 
 class AthleteInfoSerializer(serializers.ModelSerializer):    
     
@@ -93,6 +100,8 @@ class PositionSerializer(serializers.ModelSerializer):
                 'run should be in progress status')
         return value     
     
+    
+    
 
 class CollectibleItemSerializer(serializers.ModelSerializer):
     class Meta:
@@ -123,5 +132,11 @@ class CollectibleItemSerializer(serializers.ModelSerializer):
         """        
         if not int(value):            
             raise serializers.ValidationError('Value should be an integer')              
-        return value      
-   
+        return value    
+      
+class UserItemSerializer(UserSerializer):        
+    class Meta(UserSerializer.Meta):
+        model = User          
+        fields = UserSerializer.Meta.fields + ["items"]
+
+     

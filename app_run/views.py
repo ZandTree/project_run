@@ -1,10 +1,9 @@
-import csv
-from pathlib import Path
-
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from geopy.distance import distance
+from openpyxl import load_workbook
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -13,12 +12,11 @@ from rest_framework.views import APIView
 
 from app_run.models import (AthleteInfo, Challenge, CollectibleItem, Position,
                             Run)
-from project_run.settings.base import BASE_DIR
 
 from .pagination import CustomPagination
 from .serializers import (AthleteInfoSerializer, ChallengeSerializer,
                           CollectibleItemSerializer, PositionSerializer,
-                          RunSerializer, UserSerializer)
+                          RunSerializer, UserItemSerializer, UserSerializer)
 from .utils import calc_total_distance, create_dict, get_total_distance
 
 
@@ -46,10 +44,11 @@ class FilterAthletesClass(viewsets.ReadOnlyModelViewSet):
     """
     all coaches and athletes (no su): order, filter, search, pagination
     /api/users/
-    "search" default; change to "q" via settings in drf dict SEARCH_PARAM 
+    "search" default; change to "q" via settings in drf dict SEARCH_PARAM     
     """  
-    serializer_class = UserSerializer        
-    queryset = User.objects.filter(is_superuser=False)    
+    serializer_class = UserSerializer          
+    queryset = User.objects.prefetch_related('items').filter(is_superuser=False)      
+
     type = serializers.SerializerMethodField()  
 
     
@@ -58,15 +57,26 @@ class FilterAthletesClass(viewsets.ReadOnlyModelViewSet):
     pagination_class = CustomPagination
 
     
-    def get_queryset(self):   
-        qs = self.queryset                
+    def get_queryset(self):
+        qs = self.queryset                      
         type = self.request.query_params.get("type",None) 
         if type:
             if type == "coach":
                 return qs.filter(is_staff=True)
             elif type == "athlete":
-                return qs.filter(is_staff=False)  
-        return qs      
+                return qs.filter(is_staff=False)
+        return qs  
+        
+    def get_serializer_class(self, *args, **kwargs):
+        """
+        provide diff serializers for actions
+        """
+        if self.action == "list":
+            return UserSerializer
+        elif self.action == "retrieve":
+            return UserItemSerializer
+        return super().get_serializer_class()
+    
 
 class RunStart(APIView):
     """
@@ -111,7 +121,8 @@ class RunStop (APIView):
                 data = {"status":run.status}
                 total = calc_total_distance(run)
                 if  total >= 50:                    
-                    Challenge.objects.create(full_name="Пробеги 50 километров!",athlete=run.athlete)  
+                    Challenge.objects.create(full_name="Пробеги 50 километров!",athlete=run.athlete) 
+                calc_items_100(run)     
                 return Response(data,status=status.HTTP_200_OK)
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)        
@@ -167,7 +178,26 @@ class PositionViewSet(viewsets.ModelViewSet):
         if run_id:            
             run_obj = get_object_or_404(Run,id=run_id)
             qs = run_obj.positions.all()             
-        return qs    
+        return qs 
+    
+    def perform_create(self, serializer):
+        super().perform_create(serializer=serializer)        
+        data = serializer.data
+        run = get_object_or_404(Run,id=data["run"])  
+        user = run.athlete          
+        runner_coords = (data["latitude"],data["longitude"])        
+        items = CollectibleItem.objects.all() 
+        for item in items:
+            item_coords = (item.latitude,item.longitude)
+            print("item coords ",item_coords)
+            print("runner coords  ",runner_coords)
+            dist = distance(item_coords,runner_coords).meters            
+            if dist <= 100:   
+                print("found macht ...") 
+                user.items.add(item) 
+                print(user.items.all())            
+                
+             
             
     
 
@@ -175,7 +205,7 @@ class ShowCollectibleItemSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CollectibleItemSerializer       
     queryset = CollectibleItem.objects.all()    
 
-from openpyxl import load_workbook
+
 
 
 @api_view(['POST'])
