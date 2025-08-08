@@ -134,7 +134,8 @@ class CollectibleItemSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Value should be an integer')              
         return value    
       
-class UserItemSerializer(UserSerializer):        
+class UserItemSerializer(UserSerializer):  
+    items =CollectibleItemSerializer(many=True, read_only=True)      
     class Meta(UserSerializer.Meta):
         model = User          
         fields = UserSerializer.Meta.fields + ["items"]
