@@ -4,7 +4,7 @@ from .models import AthleteInfo, Challenge, CollectibleItem, Position, Run
 
 
 class RunAdmin(admin.ModelAdmin):
-    list_display = ['id','athlete_id',"status",'athlete__username','created_at','comment',"distance"]
+    list_display = ['id','athlete_id',"status",'athlete__username','created_at','comment',"distance","run_time_seconds"]
     list_select_related = ("athlete",)
     list_filter = ["status"]
 
@@ -19,7 +19,7 @@ class ChellangeAdmin(admin.ModelAdmin):
     list_display = ['id','full_name','athlete'] 
 
 class PositionAdmin(admin.ModelAdmin):
-    list_display = ['id','latitude','longitude','run']    
+    list_display = ['id','latitude','longitude','run',"date_time"]    
 class CollectibleItemAdmin(admin.ModelAdmin):
     list_display = ['id','name','latitude','longitude','picture'] 
 

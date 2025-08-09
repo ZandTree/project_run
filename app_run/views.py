@@ -17,7 +17,8 @@ from .pagination import CustomPagination
 from .serializers import (AthleteInfoSerializer, ChallengeSerializer,
                           CollectibleItemSerializer, PositionSerializer,
                           RunSerializer, UserItemSerializer, UserSerializer)
-from .utils import calc_total_distance, create_dict, get_total_distance
+from .utils import (calc_total_distance, create_dict, get_total_distance,
+                    get_total_time)
 
 
 @api_view(['GET'])
@@ -116,7 +117,8 @@ class RunStop (APIView):
                         athlete = run.athlete, full_name = "Сделай 10 Забегов!"
                     )                
                 run_postions = run.positions.all()               
-                run.distance = get_total_distance(run_postions)                
+                run.distance = get_total_distance(run_postions) 
+                run.run_time_seconds = get_total_time(run_postions)               
                 run.save()
                 data = {"status":run.status}
                 total = calc_total_distance(run)

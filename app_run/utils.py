@@ -1,4 +1,4 @@
-from django.db.models import Sum
+from django.db.models import Max, Min, Sum
 from geopy.distance import distance
 
 from app_run.models import Run
@@ -35,6 +35,21 @@ def get_total_distance(qs)->float:
         [points_lst.append((pos.latitude,pos.longitude),) for pos in qs]    
         total = calc_distance(points_lst)        
         return round(total,4)
+    else:
+        raise ValueError("Not enough data to calculate the distance") 
+    
+def get_total_time(qs)->int:
+    """
+    calc time start and finish
+    qs should contain at least two elements for calculation
+    """  
+    if qs.count() >=2:
+        start_time = qs.aggregate(start = Min('date_time'))          
+        finish_time = qs.aggregate(finish = Max('date_time'))         
+        delta = finish_time["finish"] - start_time["start"]         
+        _timestamp = delta.total_seconds()         
+        return  _timestamp
+         
     else:
         raise ValueError("Not enough data to calculate the distance") 
     
