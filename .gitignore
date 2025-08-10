@@ -6,3 +6,5 @@ __pycache__/
 db.sqlite3
 run_factories.py
 src_files
+dumps_ser.txt
+dumps_v.txt

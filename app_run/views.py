@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from geopy.distance import distance
@@ -33,33 +34,31 @@ def get_intro(request):
 class RunViewSetClass(viewsets.ModelViewSet):    
     """
     api/runs/...
-    """     
+    """    
     queryset = Run.objects.select_related('athlete').all()    
     serializer_class = RunSerializer 
     pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend,OrderingFilter]    
     ordering_fields = ['created_at',]
     filterset_fields = ['status','athlete']
-       
+ 
+      
 class FilterAthletesClass(viewsets.ReadOnlyModelViewSet): 
     """
     all coaches and athletes (no su): order, filter, search, pagination
     /api/users/
     "search" default; change to "q" via settings in drf dict SEARCH_PARAM     
     """  
-    serializer_class = UserSerializer          
-    queryset = User.objects.prefetch_related('items').filter(is_superuser=False)      
-
-    type = serializers.SerializerMethodField()  
-
-    
+    serializer_class = UserSerializer              
+    queryset = User.objects.prefetch_related('items').filter(is_superuser=False).annotate(count=Count('runs'),filter=Q(runs__status="finished"))     
+    type = serializers.SerializerMethodField()      
     filter_backends = [SearchFilter,OrderingFilter]
     search_fields = ['first_name', 'last_name','date_joined']
     pagination_class = CustomPagination
 
     
     def get_queryset(self):
-        qs = self.queryset                      
+        qs = self.queryset                          
         type = self.request.query_params.get("type",None) 
         if type:
             if type == "coach":
@@ -191,20 +190,15 @@ class PositionViewSet(viewsets.ModelViewSet):
         for item in items:
             item_coords = (item.latitude,item.longitude)            
             dist = distance(item_coords,runner_coords).meters            
-            if dist <= 100:   
-                print("found macht ...") 
+            if dist <= 100:                  
                 user.items.add(item) 
                 print(user.items.all())            
-                
-             
-            
-    
+           
+     
 
 class ShowCollectibleItemSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CollectibleItemSerializer       
     queryset = CollectibleItem.objects.all()    
-
-
 
 
 @api_view(['POST'])
