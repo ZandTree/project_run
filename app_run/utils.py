@@ -36,7 +36,8 @@ def get_total_distance(qs)->float:
         total = calc_distance(points_lst)        
         return round(total,4)
     else:
-        raise ValueError("Not enough data to calculate the distance") 
+        return 0
+        # raise ValueError("Not enough data to calculate the distance") 
     
 def get_total_time(qs)->int:
     """
@@ -51,7 +52,8 @@ def get_total_time(qs)->int:
         return  _timestamp
          
     else:
-        raise ValueError("Not enough data to calculate the distance") 
+        # raise ValueError("Not enough data to calculate the distance") 
+        return 0
     
 def calc_total_distance(obj):   
     total =Run.objects.filter(athlete=obj.athlete).aggregate(summ=Sum('distance'))
