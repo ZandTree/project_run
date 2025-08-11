@@ -50,7 +50,7 @@ class FilterAthletesClass(viewsets.ReadOnlyModelViewSet):
     "search" default; change to "q" via settings in drf dict SEARCH_PARAM     
     """  
     serializer_class = UserSerializer              
-    queryset = User.objects.prefetch_related('items').filter(is_superuser=False).annotate(count=Count('runs'),filter=Q(runs__status="finished"))     
+    queryset = User.objects.prefetch_related('items').filter(is_superuser=False).annotate(count=Count('runs',filter=Q(runs__status="finished")))     
     type = serializers.SerializerMethodField()      
     filter_backends = [SearchFilter,OrderingFilter]
     search_fields = ['first_name', 'last_name','date_joined']
