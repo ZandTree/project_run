@@ -13,5 +13,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('app_run.urls')),    
+    path('api/', include('app_run.urls')),
+        
 ]
+# urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]

@@ -66,7 +66,26 @@ def create_dict(tuple_keys,tuple_values)->dict:
    
     
 
-    
+def parse_positions(qs,start=1):
+    """
+    return 
+    - distance in km?;
+    - speed    in m/sec;
+    """
+    distance_to_current = 0 
+    for idx,prev_pos in enumerate(qs,start):        
+        if idx < qs.count():            
+            next_position = qs[idx]         
+            prev_coords = (prev_pos.latitude,prev_pos.longitude)
+            next_coords = (next_position.latitude,next_position.longitude)          
+            dist_between_points = distance(prev_coords, next_coords).m            
+            _time = (next_position.date_time - prev_pos.date_time)            
+            time_in_seconds = _time.total_seconds()           
+            speed = round(dist_between_points/time_in_seconds,2)
+            # print("speed in m/sec ", round(speed,2))
+            distance_to_current += dist_between_points
+            next_position.speed = speed
+            next_position.distance = round(distance_to_current/1000,2)
+            next_position.save()
+           
 
-
- 

@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import Count, Q
+from django.db.models import Avg, Count, Q
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from geopy.distance import distance
@@ -19,7 +19,7 @@ from .serializers import (AthleteInfoSerializer, ChallengeSerializer,
                           CollectibleItemSerializer, PositionSerializer,
                           RunSerializer, UserItemSerializer, UserSerializer)
 from .utils import (calc_total_distance, create_dict, get_total_distance,
-                    get_total_time)
+                    get_total_time, parse_positions)
 
 
 @api_view(['GET'])
@@ -34,14 +34,16 @@ def get_intro(request):
 class RunViewSetClass(viewsets.ModelViewSet):    
     """
     api/runs/...
-    """    
+    """   
     queryset = Run.objects.select_related('athlete').all()    
     serializer_class = RunSerializer 
     pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend,OrderingFilter]    
     ordering_fields = ['created_at',]
     filterset_fields = ['status','athlete']
- 
+
+    
+
       
 class FilterAthletesClass(viewsets.ReadOnlyModelViewSet): 
     """
@@ -115,9 +117,11 @@ class RunStop (APIView):
                     Challenge.objects.create(
                         athlete = run.athlete, full_name = "Сделай 10 Забегов!"
                     )                
-                run_postions = run.positions.all()               
-                run.distance = get_total_distance(run_postions) 
-                run.run_time_seconds = get_total_time(run_postions)               
+                run_positions = run.positions.all()               
+                run.distance = get_total_distance(run_positions) 
+                run.run_time_seconds = get_total_time(run_positions) 
+                avg_speed = run_positions.aggregate(speed=Avg('speed'))                   
+                run.speed = round(avg_speed["speed"],2)        
                 run.save()
                 data = {"status":run.status}
                 total = calc_total_distance(run)
@@ -178,23 +182,17 @@ class PositionViewSet(viewsets.ModelViewSet):
         if run_id:            
             run_obj = get_object_or_404(Run,id=run_id)
             qs = run_obj.positions.all()             
-        return qs 
+        return qs    
     
-    def perform_create(self, serializer):
-        super().perform_create(serializer=serializer)        
-        data = serializer.data
-        run = get_object_or_404(Run,id=data["run"])  
-        user = run.athlete          
-        runner_coords = (data["latitude"],data["longitude"])        
-        items = CollectibleItem.objects.all() 
-        for item in items:
-            item_coords = (item.latitude,item.longitude)            
-            dist = distance(item_coords,runner_coords).meters            
-            if dist <= 100:                  
-                user.items.add(item) 
-                print(user.items.all())            
-           
-     
+    def create(self,request,*args,**kwargs):
+        run_id = request.data["run"]        
+        run = get_object_or_404(Run,id=run_id)        
+        response = super().create(request, *args, **kwargs)        
+        positions = run.positions.all()
+        parse_positions(positions)
+        
+        
+        return Response({"data": response.data}, status=response.status_code)    
 
 class ShowCollectibleItemSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CollectibleItemSerializer       
@@ -230,6 +228,5 @@ def create_items(request):
         
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST) 
-
 
 
