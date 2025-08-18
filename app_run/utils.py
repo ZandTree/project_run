@@ -70,7 +70,7 @@ def parse_positions(qs):
     """
     each new position object gets calculated attr's: distance (km) and speed (m/sec);
     first position gets values of zero;
-    """
+    """    
     distance_to_current = 0 
     qs_length = qs.count()
     if qs_length >= 2:
@@ -87,8 +87,4 @@ def parse_positions(qs):
             next_pos.speed = speed
             next_pos.distance = round(distance_to_current/1000,2)
             next_pos.save()
-    else:
-            qs[0].speed = 0
-            qs[0].distance = 0
-            qs[0].save()        
-
+    

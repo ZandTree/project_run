@@ -55,7 +55,9 @@ class ChallengeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class PositionSerializer(serializers.ModelSerializer):  
-    date_time = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S.%f")     
+    date_time = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S.%f") 
+    distance = serializers.FloatField(default=0)    
+    speed = serializers.FloatField(default=0)    
     class Meta:
         model = Position         
         fields = ["id","run","latitude","longitude","date_time","distance","speed"]
