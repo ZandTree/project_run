@@ -14,6 +14,7 @@ class Run(models.Model):
     status = models.CharField(choices=Status,default=Status.INIT) 
     distance = models.FloatField(null=True,blank=True) 
     run_time_seconds = models.IntegerField(null=True,blank=True)
+    speed = models.FloatField(null=True,blank=True)
 
     def __str__(self):        
         return str(self.id)
@@ -40,6 +41,9 @@ class Position(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     date_time = models.DateTimeField(null=True,blank=True)
+    speed = models.FloatField(null=True,blank=True)
+    distance = models.FloatField(null=True,blank=True)
+
 
     def __str__(self):
         return f"{self.run} is parallel(w): {self.latitude} - medidian: {self.longitude}"
