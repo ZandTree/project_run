@@ -87,5 +87,9 @@ def parse_positions(qs,start=1):
             next_position.speed = speed
             next_position.distance = round(distance_to_current/1000,2)
             next_position.save()
+        else:
+            prev_pos.speed = 0
+            prev_pos.distance = 0
+            prev_pos.save()    
            
 

@@ -58,7 +58,7 @@ class PositionSerializer(serializers.ModelSerializer):
     date_time = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S.%f")     
     class Meta:
         model = Position         
-        fields = ["id","run","latitude","longitude","date_time"]
+        fields = ["id","run","latitude","longitude","date_time","distance","speed"]
 
     def validate_latitude(self,value)->float:
         """
