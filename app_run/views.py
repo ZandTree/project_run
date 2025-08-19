@@ -186,17 +186,20 @@ class PositionViewSet(viewsets.ModelViewSet):
          
     def perform_create(self,serializer):
         run = serializer.validated_data["run"]        
-        run = get_object_or_404(Run,id=run.id)  
-        prev_position =run.positions.last()               
-        
-        super().perform_create(serializer)
-        
-        next_position  = run.positions.last()
-        speed,_distance = parse_positions(prev_position,next_position)
-        next_position.speed = speed
-        next_position.distance = _distance
-        next_position.save()
-        serializer.save(speed=speed,distance=_distance)
+        run = get_object_or_404(Run,id=run.id)
+          
+        prev_position =run.positions.last()   
+        if prev_position:       
+            super().perform_create(serializer)            
+            next_position  = run.positions.last()
+            speed,_distance = parse_positions(prev_position,next_position)
+            next_position.speed = speed
+            next_position.distance = _distance
+            next_position.save()
+            serializer.save(speed=speed,distance=_distance)
+        else:
+            super().perform_create(serializer)
+
 
 
 class ShowCollectibleItemSet(viewsets.ReadOnlyModelViewSet):
