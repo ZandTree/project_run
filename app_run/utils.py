@@ -64,27 +64,32 @@ def create_dict(tuple_keys,tuple_values)->dict:
     """ return dict with keys from iterables: tuple keys and tuple values """     
     return dict(zip(tuple_keys,tuple_values)) 
    
-    
-
+            
 def parse_positions(qs,start=1):
     """
     each new position object gets calculated attr's: distance (km) and speed (m/sec);
     first position gets values of zero;
     """   
-    distance_to_current = 0
-     
-    for idx,prev_pos in enumerate(qs,start):        
+    distance_to_current = 0     
+    for idx,prev_pos in enumerate(qs,start):              
         if idx < qs.count():            
-            next_position = qs[idx]
+            next_pos = qs[idx]            
             prev_coords = (prev_pos.latitude,prev_pos.longitude)
-            next_coords = (next_position.latitude,next_position.longitude)          
-            dist_between_points = distance(prev_coords, next_coords).m            
-            _time = (next_position.date_time - prev_pos.date_time)            
-            time_in_seconds = _time.total_seconds()           
-            speed = round(dist_between_points/time_in_seconds,2)
-            # print("speed in m/sec ", round(speed,2))
-            distance_to_current += dist_between_points
-            next_position.speed = speed
-            next_position.distance = round(distance_to_current/1000,2)
-            next_position.save()
+            next_coords = (next_pos.latitude,next_pos.longitude)
+            next_time = next_pos.date_time                    
+            prev_time = prev_pos.date_time                                
+            if next_time != prev_time:                 
+                dist_between_points = distance(next_coords,prev_coords).m         
+                _time = next_time - prev_time 
+                time_in_seconds = _time.total_seconds()
+                if time_in_seconds > 0:                               
+                    speed = round(dist_between_points/time_in_seconds,2)                    
+                    distance_to_current += dist_between_points
+                    next_pos.speed = speed
+                    next_pos.distance = round(distance_to_current/1000,2)
+                    next_pos.save()
+            else:                
+                continue  
+        
+              
            

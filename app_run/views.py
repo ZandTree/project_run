@@ -189,7 +189,9 @@ class PositionViewSet(viewsets.ModelViewSet):
         run = get_object_or_404(Run,id=run_id)        
         response = super().create(request, *args, **kwargs)        
         positions = run.positions.all()
-        parse_positions(positions)        
+        if positions.count() >=2:
+            parse_positions(positions) 
+                     
         
         return Response({"data": response.data}, status=response.status_code)    
 
