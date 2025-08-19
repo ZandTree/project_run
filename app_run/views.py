@@ -182,17 +182,17 @@ class PositionViewSet(viewsets.ModelViewSet):
         if run_id:            
             run_obj = get_object_or_404(Run,id=run_id)
             qs = run_obj.positions.all()             
-        return qs    
-    
+        return qs           
+         
     def create(self,request,*args,**kwargs):
+        response = super().create(request, *args, **kwargs)        
         run_id = request.data["run"]        
         run = get_object_or_404(Run,id=run_id)        
-        response = super().create(request, *args, **kwargs)        
         positions = run.positions.all()
         if positions.count() >=2:
-            parse_positions(positions) 
-                     
-        
+            speed,distance_km = parse_positions(positions)
+            response.data["speed"] = speed        
+            response.data["distance"] = distance_km        
         return Response({"data": response.data}, status=response.status_code)    
 
 class ShowCollectibleItemSet(viewsets.ReadOnlyModelViewSet):
