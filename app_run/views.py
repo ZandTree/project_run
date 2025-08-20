@@ -42,8 +42,6 @@ class RunViewSetClass(viewsets.ModelViewSet):
     ordering_fields = ['created_at',]
     filterset_fields = ['status','athlete']
 
-    
-
       
 class FilterAthletesClass(viewsets.ReadOnlyModelViewSet): 
     """
@@ -104,7 +102,10 @@ class RunStop (APIView):
     def post(self, request, run_id, format=None):
         """
         1. assigns run status to "finished"
-        2. each iteration 10 run's creates a new obj Challenge Model via division;
+        2. create Challenge Model objects:
+        2.1 "Сделай 10 Забегов!";
+        2.2 "Пробеги 50 километров!";
+        2.3  "2 километра за 10 минут!"
         3. if geo data present |=> calc distance (float) of a given Run obj
         """
         try:            
@@ -112,7 +113,8 @@ class RunStop (APIView):
             if run.status == "in_progress":
                 run.status = "finished"
                 run.save()
-                user = run.athlete                
+                user = run.athlete 
+                # create first challenge               
                 if user.runs.filter(status="finished").count()%10 == 0:
                     Challenge.objects.create(
                         athlete = run.athlete, full_name = "Сделай 10 Забегов!"
@@ -125,8 +127,12 @@ class RunStop (APIView):
                 run.save()
                 data = {"status":run.status}
                 total = calc_total_distance(run)
+                # create second challenge
                 if  total >= 50:                    
-                    Challenge.objects.create(full_name="Пробеги 50 километров!",athlete=run.athlete)                     
+                    Challenge.objects.create(full_name="Пробеги 50 километров!",athlete=run.athlete)
+                # third challenge                  
+                if run.distance >= 2 and run.run_time_seconds/60 <= 10:                                                 
+                    Challenge.objects.create(full_name="2 километра за 10 минут!",athlete=run.athlete)
                 return Response(data,status=status.HTTP_200_OK)
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)        
@@ -186,20 +192,21 @@ class PositionViewSet(viewsets.ModelViewSet):
          
     def perform_create(self,serializer):
         run = serializer.validated_data["run"]        
-        run = get_object_or_404(Run,id=run.id)
-          
+        run = get_object_or_404(Run,id=run.id)          
         prev_position =run.positions.last()   
         if prev_position:       
             super().perform_create(serializer)            
             next_position  = run.positions.last()
             speed,_distance = parse_positions(prev_position,next_position)
+            print("do you see rounded speed and _distance????")
+            print("speed, _distance ",speed,_distance)
             next_position.speed = speed
             next_position.distance = _distance
             next_position.save()
             serializer.save(speed=speed,distance=_distance)
         else:
+            print("run begins")
             super().perform_create(serializer)
-
 
 
 class ShowCollectibleItemSet(viewsets.ReadOnlyModelViewSet):

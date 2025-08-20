@@ -76,8 +76,9 @@ def parse_positions(prev_position,next_position):
     _time = next_position.date_time - prev_position.date_time 
     time_in_seconds = _time.total_seconds() 
     if time_in_seconds > 0:
-            speed = round(dist_between_points/time_in_seconds,2)           
-            _distance = prev_position.distance + round(dist_between_points/1000,2)
+            speed = round(dist_between_points/time_in_seconds,2) 
+            raw_distance = prev_position.distance + dist_between_points/1000         
+            _distance = round(raw_distance,2)            
             return (speed,_distance)
         
               

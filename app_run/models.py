@@ -3,6 +3,9 @@ from django.db import models
 
 
 class Run(models.Model):
+    """
+    distance: km
+    """
     class Status(models.TextChoices):
         INIT = "init", "Init"
         IN_PROGRES = "in_progress", "In progress"
