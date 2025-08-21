@@ -66,3 +66,14 @@ class CollectibleItem(models.Model):
         return self.name
 
 
+
+class Subscribe(models.Model):
+    coach = models.ForeignKey(User,related_name="runners",on_delete=models.CASCADE)
+    runner = models.ForeignKey(User,related_name="coaches",on_delete=models.CASCADE)
+    
+    class Meta:
+        unique_together = ('coach', 'runner')
+
+    def __str__(self):
+        return f"coach {self.coach}, client: {self.athelete}"
+
