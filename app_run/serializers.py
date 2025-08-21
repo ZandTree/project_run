@@ -1,8 +1,9 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .models import AthleteInfo, Challenge, CollectibleItem, Position, Run
-from .utils import check_float_digits
+from .models import (AthleteInfo, Challenge, CollectibleItem, Position, Run,
+                     Subscribe)
+from .utils import check_float_digits, person_exist
 
 
 class UserSerializer(serializers.ModelSerializer):    
@@ -23,8 +24,28 @@ class UserSerializer(serializers.ModelSerializer):
 class AthleteSerializer(serializers.ModelSerializer):    
     class Meta:
         model = User          
-        fields = ["id","username","last_name","first_name"]    
-            
+        fields = ["id","username","last_name","first_name"] 
+
+
+class Subscribeserializer(serializers.ModelSerializer):
+    coach = UserSerializer(validators=[person_exist])  
+    runner = UserSerializer(validators=[person_exist])
+    class Meta:
+        model = Subscribe
+        fields = ["id","coach","runner"]
+
+    def get_coach(self,obj):
+        if not obj.is_staff:
+            raise serializers.ValidationError("obj should be a coach")
+        return obj
+    
+    def get_runner(self,obj):
+        if obj.is_staff:
+            raise serializers.ValidationError("runner can not be a coach")
+        return obj
+        
+
+
 class RunSerializer(serializers.ModelSerializer):
     athlete_data = AthleteSerializer(source='athlete',read_only=True)    
     class Meta:
@@ -93,9 +114,7 @@ class PositionSerializer(serializers.ModelSerializer):
                 'run should be in progress status')
         return value     
     
-    
-    
-
+  
 class CollectibleItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CollectibleItem

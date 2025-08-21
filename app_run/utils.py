@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db.models import Max, Min, Sum
 from geopy.distance import distance
 
@@ -81,5 +82,9 @@ def parse_positions(prev_position,next_position):
             _distance = round(raw_distance,2)            
             return (speed,_distance)
         
-              
+def person_exist(obj):
+    """
+    function for ser-er validation: object(coach,athlete) should exist in db
+    """
+    return User.objects.exists(id = obj.id)              
            
