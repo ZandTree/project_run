@@ -261,9 +261,11 @@ class SubscribeView(APIView):
         coach_id (subscribe_to_coach/<int:id>) and athlete id(body)
         to create a new subscription       
         """
-        coach = get_object_or_404(User,id = id)       
-        runner = get_object_or_404(User,id = request.data["athlete"])          
-                     
+        coach = get_object_or_404(User,id = id) 
+        try:
+            runner = User.objects.get(id = request.data["athlete"])          
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)             
         inp = {"coach":coach.id,"runner":runner.id}        
         ser = SubscribeSerializer(data=inp)
         if ser.is_valid(raise_exception=True):
