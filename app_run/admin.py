@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from .models import AthleteInfo, Challenge, CollectibleItem, Position, Run
+from .models import (AthleteInfo, Challenge, CollectibleItem, Position, Run,
+                     Subscribe)
 
 
 class RunAdmin(admin.ModelAdmin):
@@ -15,11 +16,15 @@ class RunAdmin(admin.ModelAdmin):
 class AthleteInfoAdmin(admin.ModelAdmin):
     list_display = ['id','user_id',"goals",'weight']
 
+class SubscribeAdmin(admin.ModelAdmin):
+    list_display = ['id','coach_id',"runner_id"]
+
 class ChellangeAdmin(admin.ModelAdmin):
     list_display = ['id','full_name','athlete'] 
 
 class PositionAdmin(admin.ModelAdmin):
-    list_display = ['id','latitude','longitude','run',"date_time","speed","distance"]    
+    list_display = ['id','latitude','longitude','run',"date_time","speed","distance"]
+        
 class CollectibleItemAdmin(admin.ModelAdmin):
     list_display = ['id','name','latitude','longitude','picture'] 
 
@@ -28,3 +33,4 @@ admin.site.register(Challenge,ChellangeAdmin)
 admin.site.register(AthleteInfo, AthleteInfoAdmin)    
 admin.site.register(Position, PositionAdmin)    
 admin.site.register(CollectibleItem,CollectibleItemAdmin)    
+admin.site.register(Subscribe,SubscribeAdmin)    

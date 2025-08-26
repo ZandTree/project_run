@@ -3,9 +3,8 @@ from django.contrib.auth.models import User
 from django.db.models import Avg, Count, Q
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from geopy.distance import distance
 from openpyxl import load_workbook
-from rest_framework import serializers, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
@@ -17,7 +16,9 @@ from app_run.models import (AthleteInfo, Challenge, CollectibleItem, Position,
 from .pagination import CustomPagination
 from .serializers import (AthleteInfoSerializer, ChallengeSerializer,
                           CollectibleItemSerializer, PositionSerializer,
-                          RunSerializer, UserItemSerializer, UserSerializer)
+                          RunSerializer, SubscribeSerializer,
+                          UserAthleteSerializer, UserCoachSerializer,
+                          UserSerializer)
 from .utils import (calc_total_distance, create_dict, get_total_distance,
                     get_total_time, parse_positions)
 
@@ -50,14 +51,17 @@ class FilterAthletesClass(viewsets.ReadOnlyModelViewSet):
     "search" default; change to "q" via settings in drf dict SEARCH_PARAM     
     """  
     serializer_class = UserSerializer              
-    queryset = User.objects.prefetch_related('items').filter(is_superuser=False).annotate(count=Count('runs',filter=Q(runs__status="finished")))     
-    type = serializers.SerializerMethodField()      
+    queryset = User.objects.prefetch_related('items').filter(is_superuser=False).annotate(count=Count('runs',filter=Q(runs__status="finished")))       
     filter_backends = [SearchFilter,OrderingFilter]
     search_fields = ['first_name', 'last_name','date_joined']
     pagination_class = CustomPagination
 
     
     def get_queryset(self):
+        """
+        users selected via url query params: 
+        qs only coaches vs qs only athlete
+        """
         qs = self.queryset                          
         type = self.request.query_params.get("type",None) 
         if type:
@@ -69,12 +73,21 @@ class FilterAthletesClass(viewsets.ReadOnlyModelViewSet):
         
     def get_serializer_class(self, *args, **kwargs):
         """
-        provide diff serializers for actions
+        provide diff serializers;
+        detail(retrieve): return detailed ser-er (coaches vs athletes)
         """
         if self.action == "list":
+            users = User.objects.all()
+            for user in users:
+                print(user.id,user.is_staff)
             return UserSerializer
-        elif self.action == "retrieve":
-            return UserItemSerializer
+        elif self.action == "retrieve":             
+            user = self.get_object()            
+            # print("found user ",user.__dict__)
+            if user.is_staff:
+                return UserCoachSerializer
+            else:
+                return UserAthleteSerializer
         return super().get_serializer_class()
     
 
@@ -197,15 +210,12 @@ class PositionViewSet(viewsets.ModelViewSet):
         if prev_position:       
             super().perform_create(serializer)            
             next_position  = run.positions.last()
-            speed,_distance = parse_positions(prev_position,next_position)
-            print("do you see rounded speed and _distance????")
-            print("speed, _distance ",speed,_distance)
+            speed,_distance = parse_positions(prev_position,next_position)            
             next_position.speed = speed
             next_position.distance = _distance
             next_position.save()
             serializer.save(speed=speed,distance=_distance)
-        else:
-            print("run begins")
+        else:            
             super().perform_create(serializer)
 
 
@@ -244,4 +254,23 @@ def create_items(request):
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST) 
 
-
+   
+class SubscribeView(APIView):
+    def post(self,request,id):  
+        """
+        coach_id (subscribe_to_coach/<int:id>) and athlete id(body)
+        to create a new subscription       
+        """
+        coach = get_object_or_404(User,id = id)       
+        runner = get_object_or_404(User,id = request.data["athlete"])          
+                     
+        inp = {"coach":coach.id,"runner":runner.id}        
+        ser = SubscribeSerializer(data=inp)
+        if ser.is_valid(raise_exception=True):
+            ser.save()
+            data = ser.data        
+            return Response(data=data,status=status.HTTP_200_OK)
+        else:            
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+              
+       

@@ -75,5 +75,5 @@ class Subscribe(models.Model):
         unique_together = ('coach', 'runner')
 
     def __str__(self):
-        return f"coach {self.coach}, client: {self.athelete}"
+        return f"coach {self.coach}:ID {self.coach.id}, client: {self.runner},id:{self.runner.id}"
 

@@ -3,8 +3,8 @@ from rest_framework import routers
 
 from .views import (CreateUpdatePersonalInfo, FilterAthletesClass,
                     PositionViewSet, RunStart, RunStop, RunViewSetClass,
-                    ShowCollectibleItemSet, create_items, get_intro,
-                    showChallenges)
+                    ShowCollectibleItemSet, SubscribeView, create_items,
+                    get_intro, showChallenges)
 
 router = routers.DefaultRouter()
 router.register(r'users',FilterAthletesClass,basename='users')
@@ -19,9 +19,11 @@ urlpatterns = [
     path('athlete_info/<user_id>/',CreateUpdatePersonalInfo.as_view()),    
     path('challenges/', showChallenges),            
     path('upload_file/',create_items),
+    path('subscribe_to_coach/<int:id>/',SubscribeView.as_view(),name="subscribe"),
     path('',include(router.urls),name="collectible_item"),    
     path('',include(router.urls),name="runs"),
     path('',include(router.urls),name='users'),    
     path('',include(router.urls),name='positions'),
+    
     
 ]

@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from .models import (AthleteInfo, Challenge, CollectibleItem, Position, Run,
                      Subscribe)
-from .utils import check_float_digits, person_exist
+from .utils import check_float_digits
 
 
 class UserSerializer(serializers.ModelSerializer):    
@@ -20,30 +20,43 @@ class UserSerializer(serializers.ModelSerializer):
         elif obj.is_staff is False:            
             type = "athlete"
         return type
+        
            
 class AthleteSerializer(serializers.ModelSerializer):    
     class Meta:
         model = User          
         fields = ["id","username","last_name","first_name"] 
 
+class SubscribeSerializer(serializers.ModelSerializer):   
+    class Meta:
+        model = Subscribe
+        fields = ["id","coach","runner"]
+        
 
-class Subscribeserializer(serializers.ModelSerializer):
-    coach = UserSerializer(validators=[person_exist])  
-    runner = UserSerializer(validators=[person_exist])
+    def validate_coach(self,coach):        
+        if not coach.is_staff:
+            raise serializers.ValidationError("user should be a coach")
+        return coach
+    
+    def validate_runner(self, runner):        
+        if runner.is_staff:
+            raise serializers.ValidationError("runner can not be a coach")
+        return runner
+    def validate(self,attrs):
+        coach = attrs.get("coach")
+        runner = attrs.get("runner")
+        if Subscribe.objects.filter(coach_id = coach.id,runner_id = runner.id).exists():
+            raise serializers.ValidationError("this pair is already exists")
+        return attrs
+
+class SubscribeSerExtended(serializers.ModelSerializer): 
+    coach = UserSerializer(read_only=True)  
+    runner = UserSerializer(read_only=True)  
     class Meta:
         model = Subscribe
         fields = ["id","coach","runner"]
 
-    def get_coach(self,obj):
-        if not obj.is_staff:
-            raise serializers.ValidationError("obj should be a coach")
-        return obj
-    
-    def get_runner(self,obj):
-        if obj.is_staff:
-            raise serializers.ValidationError("runner can not be a coach")
-        return obj
-        
+    # TODO: if needed add validation       
 
 
 class RunSerializer(serializers.ModelSerializer):
@@ -145,11 +158,42 @@ class CollectibleItemSerializer(serializers.ModelSerializer):
         if not int(value):            
             raise serializers.ValidationError('Value should be an integer')              
         return value    
-      
-class UserItemSerializer(UserSerializer):  
-    items =CollectibleItemSerializer(many=True, read_only=True)      
+
+
+
+class UserCoachSerializer(UserSerializer):
+    """
+    for coaches: substitute parent serializer with add info:
+    list m2m: collected items and subscribed athletes
+    """  
+    items =CollectibleItemSerializer(many=True, read_only=True)          
+    athletes = serializers.SerializerMethodField(read_only=True)       
     class Meta(UserSerializer.Meta):
         model = User          
-        fields = UserSerializer.Meta.fields + ["items"]
+        fields = UserSerializer.Meta.fields + ["items","athletes"]
+
+    def get_athletes(self,obj)->list|None:
+        """
+        return filtered runner_id's
+        """        
+        return obj.runners.values_list("runner_id",flat=True) 
+
+    
+      
+class UserAthleteSerializer(UserSerializer):
+    """
+    for athletes: substitute parent serializer with add info:
+    list m2m: collected items and subscribed athletes  
+    """
+    items =CollectibleItemSerializer(many=True, read_only=True)
+    coach = serializers.SerializerMethodField(read_only=True)       
+         
+    class Meta(UserSerializer.Meta):
+        model = User          
+        fields = UserSerializer.Meta.fields + ["items","coach"]
+
+    def get_coach(self,obj)->User|None:       
+        coach = obj.coaches.values_list("coach_id",flat=True).last()         
+        return coach    
 
      
