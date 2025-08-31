@@ -27,6 +27,16 @@ class AthleteSerializer(serializers.ModelSerializer):
         model = User          
         fields = ["id","username","last_name","first_name"] 
 
+class ShortAthleteSerializer(AthleteSerializer):    
+    full_name = serializers.SerializerMethodField(read_only=True)       
+    class Meta(UserSerializer.Meta):
+        model = User          
+        fields = ["id","username","full_name"] 
+
+    def get_full_name(self,obj):
+        return f"{obj.first_name} {obj.last_name}"          
+      
+
 class SubscribeSerializer(serializers.ModelSerializer):   
     class Meta:
         model = Subscribe
@@ -50,6 +60,7 @@ class SubscribeSerializer(serializers.ModelSerializer):
         return attrs
 
 class SubscribeSerExtended(serializers.ModelSerializer): 
+    # in case you need extended info about the user
     coach = UserSerializer(read_only=True)  
     runner = UserSerializer(read_only=True)  
     class Meta:
@@ -82,11 +93,34 @@ class AthleteInfoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'This value can not be less than zero and more than 900 kg.')
         return value
-    
+
+   
 class ChallengeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Challenge 
-        fields = "__all__"
+        fields = ["full_name","athlete"]
+
+class ChallengeSummarySerializer(serializers.ModelSerializer):
+    # model has also athlete
+    name_to_display = serializers.CharField(read_only=True)    
+    class Meta:
+        model = Challenge
+        fields = ["name_to_display"]
+
+    def to_representation(self, instance):       
+        repr =  super().to_representation(instance) 
+        repr["athletes"] = [] 
+        users = User.objects.filter(is_staff=False)        
+        for user in users:                             
+            user_chs = user.challenges.values("athlete_id","full_name").distinct()            
+            if user_chs.count()>0:                                           
+                for ch in user_chs:
+                    if instance["name_to_display"] == ch["full_name"]:                         
+                        ser = ShortAthleteSerializer(user)                        
+                        repr["athletes"].append(ser.data)       
+        return repr
+    
+
 
 class PositionSerializer(serializers.ModelSerializer):  
     date_time = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S.%f") 
@@ -178,8 +212,6 @@ class UserCoachSerializer(UserSerializer):
         """        
         return obj.runners.values_list("runner_id",flat=True) 
 
-    
-      
 class UserAthleteSerializer(UserSerializer):
     """
     for athletes: substitute parent serializer with add info:

@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, F, Q
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from openpyxl import load_workbook
@@ -15,6 +15,7 @@ from app_run.models import (AthleteInfo, Challenge, CollectibleItem, Position,
 
 from .pagination import CustomPagination
 from .serializers import (AthleteInfoSerializer, ChallengeSerializer,
+                          ChallengeSummarySerializer,
                           CollectibleItemSerializer, PositionSerializer,
                           RunSerializer, SubscribeSerializer,
                           UserAthleteSerializer, UserCoachSerializer,
@@ -71,19 +72,16 @@ class FilterAthletesClass(viewsets.ReadOnlyModelViewSet):
                 return qs.filter(is_staff=False)
         return qs  
         
-    def get_serializer_class(self, *args, **kwargs):
+    def get_serializer_class(self):
         """
         provide diff serializers;
         detail(retrieve): return detailed ser-er (coaches vs athletes)
         """
-        if self.action == "list":
-            users = User.objects.all()
-            for user in users:
-                print(user.id,user.is_staff)
+        if self.action == "list":            
             return UserSerializer
         elif self.action == "retrieve":             
+            # self.kwargs = {"pk":1}          
             user = self.get_object()            
-            # print("found user ",user.__dict__)
             if user.is_staff:
                 return UserCoachSerializer
             else:
@@ -274,5 +272,32 @@ class SubscribeView(APIView):
             return Response(data=data,status=status.HTTP_200_OK)
         else:            
             return Response(status=status.HTTP_400_BAD_REQUEST)
-              
-       
+
+
+
+@api_view(['GET'])
+def showChallenges(request):
+    athlete_id = request.query_params.get("athlete",None)      
+    if athlete_id:
+        athlete = get_object_or_404(User,id=athlete_id)
+        lst = athlete.challenges.all()       
+    else:
+        lst = Challenge.objects.all()
+    data = ChallengeSerializer(lst,many=True).data
+    return Response(data=data,status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])              
+def summ_challenges(request): 
+    """
+    summarize challenge data
+    """   
+    challenges = Challenge.objects.values(name_to_display=F("full_name")).distinct()  
+    data = ChallengeSummarySerializer(challenges,many=True).data     
+    return Response(data=data,status=status.HTTP_200_OK)
+
+
+
+   
+        
+    

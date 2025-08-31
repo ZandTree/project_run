@@ -4,7 +4,7 @@ from rest_framework import routers
 from .views import (CreateUpdatePersonalInfo, FilterAthletesClass,
                     PositionViewSet, RunStart, RunStop, RunViewSetClass,
                     ShowCollectibleItemSet, SubscribeView, create_items,
-                    get_intro, showChallenges)
+                    get_intro, showChallenges, summ_challenges)
 
 router = routers.DefaultRouter()
 router.register(r'users',FilterAthletesClass,basename='users')
@@ -20,6 +20,7 @@ urlpatterns = [
     path('challenges/', showChallenges),            
     path('upload_file/',create_items),
     path('subscribe_to_coach/<int:id>/',SubscribeView.as_view(),name="subscribe"),
+    path('challenges_summary/',summ_challenges,name="challenges_summary"),
     path('',include(router.urls),name="collectible_item"),    
     path('',include(router.urls),name="runs"),
     path('',include(router.urls),name='users'),    
