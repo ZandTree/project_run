@@ -134,7 +134,7 @@ class RunStop (APIView):
                 run.distance = get_total_distance(run_positions) 
                 run.run_time_seconds = get_total_time(run_positions) 
                 print(run.positions.values_list("speed"))
-                avg_speed = run_positions.exclude(speed=None).aggregate(speed=Avg('speed'))
+                avg_speed = run_positions.aggregate(speed=Avg('speed'))
                  
                 if not (avg_speed["speed"] is None):
                     run.speed = round(avg_speed["speed"],2)

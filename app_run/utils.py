@@ -34,7 +34,7 @@ def get_total_distance(qs)->float:
     """  
     if qs.count() >=2:   
         points_lst = []    
-        [points_lst.append((pos.latitude,pos.longitude),) for pos in qs]    
+        [points_lst.append((pos.latitude,pos.longitude),) for pos in qs if not (pos.latitude is None) ]    
         total = calc_distance(points_lst)        
         return round(total,4)
     else:
