@@ -136,10 +136,8 @@ class RunStop (APIView):
                 run.run_time_seconds = get_total_time(run_positions)                 
                 avg_speed = run_positions.aggregate(speed=Avg('speed'))
                 avg_speed = avg_speed.get("speed",0)
-                # if not (avg_speed["speed"] is None):
-                #     run.speed = round(avg_speed["speed"],2)
-                # else:
-                #     run.speed = 0   
+                if not avg_speed:
+                    avg_speed = 0                  
                 run.speed = round(avg_speed,2)                                
                 run.save()
                 data = {"status":run.status}
