@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import connection
 from django.db.models import Avg, Count, F, Q
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -296,8 +297,8 @@ def showChallenges(request):
 def summ_challenges(request): 
     """
     summarize challenge data
-    """   
-    challenges = Challenge.objects.values(name_to_display=F("full_name")).distinct()  
+    """      
+    challenges = Challenge.objects.select_related("athlete").values(name_to_display=F("full_name")).distinct()     
     data = ChallengeSummarySerializer(challenges,many=True).data     
     return Response(data=data,status=status.HTTP_200_OK)
 

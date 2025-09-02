@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db import connection
 from rest_framework import serializers
 
 from .models import (AthleteInfo, Challenge, CollectibleItem, Position, Run,
@@ -109,15 +110,16 @@ class ChallengeSummarySerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):       
         repr =  super().to_representation(instance) 
-        repr["athletes"] = [] 
-        users = User.objects.filter(is_staff=False)        
+        repr["athletes"] = []         
+        users = User.objects.filter(is_staff=False).only("first_name","last_name","username")             
         for user in users:                             
             user_chs = user.challenges.values("athlete_id","full_name").distinct()            
             if user_chs.count()>0:                                           
                 for ch in user_chs:
                     if instance["name_to_display"] == ch["full_name"]:                         
                         ser = ShortAthleteSerializer(user)                        
-                        repr["athletes"].append(ser.data)       
+                        repr["athletes"].append(ser.data)  
+                             
         return repr
     
 
