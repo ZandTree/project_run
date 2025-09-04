@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.db import connection
+from django.db.models import Prefetch
 from rest_framework import serializers
 
 from .models import (AthleteInfo, Challenge, CollectibleItem, Position, Run,
@@ -101,27 +101,32 @@ class ChallengeSerializer(serializers.ModelSerializer):
         model = Challenge 
         fields = ["full_name","athlete"]
 
-class ChallengeSummarySerializer(serializers.ModelSerializer):
-    # model has also athlete
-    name_to_display = serializers.CharField(read_only=True)    
+
+
+class ChallengeSummarySerializer(serializers.ModelSerializer):   
+    name_to_display = serializers.CharField()
     class Meta:
-        model = Challenge
-        fields = ["name_to_display"]
+        model = Challenge        
+        fields = ["name_to_display","athlete_id"]
+
+      
 
     def to_representation(self, instance):       
-        repr =  super().to_representation(instance) 
+        repr =  super().to_representation(instance)         
         repr["athletes"] = []         
-        users = User.objects.filter(is_staff=False).only("first_name","last_name","username")             
-        for user in users:                             
-            user_chs = user.challenges.values("athlete_id","full_name").distinct()            
-            if user_chs.count()>0:                                           
+        users = User.objects.filter(is_staff=False).prefetch_related(
+        Prefetch("challenges", queryset=Challenge.objects.only("athlete_id").distinct())
+        ).only("first_name","last_name","username")                     
+                                 
+        for user in users:                                                   
+            user_chs = user.challenges.values("athlete_id","full_name")                                   
+            if user_chs:      
                 for ch in user_chs:
                     if instance["name_to_display"] == ch["full_name"]:                         
                         ser = ShortAthleteSerializer(user)                        
-                        repr["athletes"].append(ser.data)  
-                             
+                        repr["athletes"].append(ser.data)
         return repr
-    
+
 
 
 class PositionSerializer(serializers.ModelSerializer):  

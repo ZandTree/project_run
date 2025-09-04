@@ -295,8 +295,8 @@ def showChallenges(request):
 def summ_challenges(request): 
     """
     summarize challenge data
-    """      
-    challenges = Challenge.objects.select_related("athlete").values(name_to_display=F("full_name")).distinct()     
+    """       
+    challenges = Challenge.objects.select_related("athlete").values(name_to_display=F("full_name")).distinct()
     data = ChallengeSummarySerializer(challenges,many=True).data     
     return Response(data=data,status=status.HTTP_200_OK)
 
