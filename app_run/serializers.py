@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.db.models import Prefetch
+from django.db.models import Exists, Max, OuterRef, Prefetch
 from rest_framework import serializers
 
 from .models import (AthleteInfo, Challenge, CollectibleItem, Position, Run,
@@ -104,30 +104,31 @@ class ChallengeSerializer(serializers.ModelSerializer):
 
 
 class ChallengeSummarySerializer(serializers.ModelSerializer):   
-    name_to_display = serializers.CharField()
+    # name_to_display = serializers.CharField()
+    name_to_display = serializers.SerializerMethodField()
+
     class Meta:
         model = Challenge        
-        fields = ["name_to_display","athlete_id"]
+        fields = ["name_to_display"]
 
-      
+    def get_name_to_display(self,obj):
+        return obj.full_name
 
-    def to_representation(self, instance):       
-        repr =  super().to_representation(instance)         
-        repr["athletes"] = []         
+
+    def to_representation(self, instance):                
+        repr =  super().to_representation(instance)                
+        repr["athletes"] = []                     
         users = User.objects.filter(is_staff=False).prefetch_related(
-        Prefetch("challenges", queryset=Challenge.objects.only("athlete_id").distinct())
-        ).only("first_name","last_name","username")                     
-                                 
-        for user in users:                                                   
-            user_chs = user.challenges.values("athlete_id","full_name")                                   
-            if user_chs:      
-                for ch in user_chs:
-                    if instance["name_to_display"] == ch["full_name"]:                         
-                        ser = ShortAthleteSerializer(user)                        
-                        repr["athletes"].append(ser.data)
+        "challenges").only("first_name","last_name","username")               
+        
+
+        for user in users:            
+            if instance in  user.challenges.all():                          
+                ser = ShortAthleteSerializer(user)                        
+                repr["athletes"].append(ser.data)
+        
         return repr
-
-
+    
 
 class PositionSerializer(serializers.ModelSerializer):  
     date_time = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S.%f") 

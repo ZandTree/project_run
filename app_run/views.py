@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import connection
-from django.db.models import Avg, Count, F, Q
+from django.db.models import Avg, Count, F, Max, Q
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from openpyxl import load_workbook
@@ -295,8 +295,10 @@ def showChallenges(request):
 def summ_challenges(request): 
     """
     summarize challenge data
-    """       
-    challenges = Challenge.objects.select_related("athlete").values(name_to_display=F("full_name")).distinct()
+    """   
+    ids = (Challenge.objects.values("athlete_id","full_name").annotate(max_id=Max("id"))        
+       .values_list("max_id", flat=True))
+    challenges = Challenge.objects.filter(id__in=ids).select_related("athlete")    
     data = ChallengeSummarySerializer(challenges,many=True).data     
     return Response(data=data,status=status.HTTP_200_OK)
 
