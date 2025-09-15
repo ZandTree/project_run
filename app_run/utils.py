@@ -34,9 +34,8 @@ def get_total_distance(qs)->float:
     """  
     if qs.count() >=2:   
         points_lst = []    
-        [points_lst.append((pos.latitude,pos.longitude),) for pos in qs ]    
-        # [points_lst.append((pos.latitude,pos.longitude),) for pos in qs if not (pos.latitude is None) ]    
-        total = calc_distance(points_lst)        
+        [points_lst.append((pos.latitude,pos.longitude),) for pos in qs ]           
+        total = calc_distance(points_lst)             
         return round(total,4)
     else:
         return 0
@@ -51,7 +50,7 @@ def get_total_time(qs)->int:
         start_time = qs.aggregate(start = Min('date_time'))          
         finish_time = qs.aggregate(finish = Max('date_time'))         
         delta = finish_time["finish"] - start_time["start"]         
-        _timestamp = delta.total_seconds()         
+        _timestamp = delta.total_seconds()                 
         return  _timestamp
          
     else:
@@ -75,8 +74,10 @@ def parse_positions(prev_position,next_position):
     """     
     prev_coords = (prev_position.latitude,prev_position.longitude )
     next_coords = (next_position.latitude,next_position.longitude)
-    dist_between_points = distance(next_coords,prev_coords).m   
+    dist_between_points = distance(next_coords,prev_coords).m  
+    print("line 79 dist between ", dist_between_points) 
     _time = next_position.date_time - prev_position.date_time 
+    print("line 81 time ", _time) 
     time_in_seconds = _time.total_seconds() 
     if time_in_seconds > 0:
             speed = round(dist_between_points/time_in_seconds,2) 

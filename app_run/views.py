@@ -131,11 +131,13 @@ class RunStop (APIView):
                     Challenge.objects.create(
                         athlete = run.athlete, full_name = "Сделай 10 Забегов!"
                     )                
-                run_positions = run.positions.all()               
+                run_positions = run.positions.all()   
+                #           
                 run.distance = get_total_distance(run_positions) 
-                run.run_time_seconds = get_total_time(run_positions)                 
-                avg_speed = run_positions.aggregate(speed=Avg('speed'))
-                avg_speed = avg_speed.get("speed",0)
+                run.run_time_seconds = get_total_time(run_positions)        
+                
+                avg_speed = run_positions.aggregate(speed=Avg('speed'))                
+                avg_speed = avg_speed.get("speed",0)                
                 if not avg_speed:
                     avg_speed = 0                  
                 run.speed = round(avg_speed,2)                                
@@ -209,10 +211,13 @@ class PositionViewSet(viewsets.ModelViewSet):
         run = serializer.validated_data["run"]        
         run = get_object_or_404(Run,id=run.id)          
         prev_position =run.positions.last()   
-        if prev_position:       
+        if prev_position:  
+            # print("has prev position ")     
             super().perform_create(serializer)            
             next_position  = run.positions.last()
-            speed,_distance = parse_positions(prev_position,next_position)            
+            speed,_distance = parse_positions(prev_position,next_position) 
+            # print("speed is ", speed)           
+            # print("distance is ", _distance)           
             next_position.speed = speed
             next_position.distance = _distance
             next_position.save()
@@ -298,12 +303,21 @@ def summ_challenges(request):
     """   
     ids = (Challenge.objects.values("athlete_id","full_name").annotate(max_id=Max("id"))        
        .values_list("max_id", flat=True))
+    # ids = list of dict's   
+    # single dict looks like: ids_1[0] {'athlete_id': 3, 'full_name': 'Пробеги 50 километров!'}
+    # after annotation
+    #ids_1 list of dicts 
+    # print(ids_1[0].__dict__)
     challenges = Challenge.objects.filter(id__in=ids).select_related("athlete")    
     data = ChallengeSummarySerializer(challenges,many=True).data     
     return Response(data=data,status=status.HTTP_200_OK)
 
 
-
+"""
    
-        
+before  
+{ 'id': 287, 'run_id': 47, 'latitude': 40.7675, 'longitude': -73.972, 'date_time': datetime.datetime(2025, 8, 19, 10, 10, tzinfo=datetime.timezone.utc), 'speed': 4.59, 'distance': 3.48}
+
+after  { 'id': 287, 'run_id': 47, 'latitude': 40.7675, 'longitude': -73.972, 'date_time': datetime.datetime(2025, 8, 19, 10, 10, tzinfo=datetime.timezone.utc), 'speed': 4.59, 'distance': 3.48}    
     
+"""

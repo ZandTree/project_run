@@ -103,8 +103,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
 
 
 
-class ChallengeSummarySerializer(serializers.ModelSerializer):   
-    # name_to_display = serializers.CharField()
+class ChallengeSummarySerializer(serializers.ModelSerializer):      
     name_to_display = serializers.SerializerMethodField()
 
     class Meta:
@@ -120,8 +119,6 @@ class ChallengeSummarySerializer(serializers.ModelSerializer):
         repr["athletes"] = []                     
         users = User.objects.filter(is_staff=False).prefetch_related(
         "challenges").only("first_name","last_name","username")               
-        
-
         for user in users:            
             if instance in  user.challenges.all():                          
                 ser = ShortAthleteSerializer(user)                        
@@ -180,7 +177,7 @@ class CollectibleItemSerializer(serializers.ModelSerializer):
         float latitude val [-90.0, 90.0] 
         """
         if value >= 90.0 or value <= -90.0:
-            print("longitude val invalid")
+            # print("longitude val invalid")
             raise serializers.ValidationError('This field should be a float in range [-90.0,90.0]')             
         return value
        
@@ -189,7 +186,7 @@ class CollectibleItemSerializer(serializers.ModelSerializer):
         float longitude val [-180.0,180] 
         """
         if value >= 180.0 or value <= -180.0:
-            print("longitude val invalid")
+            # print("longitude val invalid")
             raise serializers.ValidationError('This field should be a float in range [-180.0,180.0]')              
         return value 
          
