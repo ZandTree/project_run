@@ -111,12 +111,12 @@ class ChallengeSummarySerializer(serializers.Serializer):
         repr["name_to_display"] = instance.full_name
         repr["athletes"] = []   
         
-        users = User.objects.filter(is_staff=False).prefetch_related(
-        Prefetch("challenges", queryset=Challenge.objects.select_related("athlete"),to_attr="related_challenges")
-        ).only("first_name","last_name","username")       
         # users = User.objects.filter(is_staff=False).prefetch_related(
-        # Prefetch("challenges", queryset=Challenge.objects.select_related("athlete").only("full_name","athlete_id").distinct(),to_attr="related_challenges")
+        # Prefetch("challenges", queryset=Challenge.objects.select_related("athlete"),to_attr="related_challenges")
         # ).only("first_name","last_name","username")       
+        users = User.objects.filter(is_staff=False).prefetch_related(
+        Prefetch("challenges", queryset=Challenge.objects.select_related("athlete").only("full_name","athlete_id").distinct(),to_attr="related_challenges")
+        ).only("first_name","last_name","username")       
                                 
         for user in users:
             for challange in user.related_challenges:                
