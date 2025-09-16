@@ -300,24 +300,14 @@ def showChallenges(request):
 def summ_challenges(request): 
     """
     summarize challenge data
-    """   
-    ids = (Challenge.objects.values("athlete_id","full_name").annotate(max_id=Max("id"))        
-       .values_list("max_id", flat=True))
-    # ids = list of dict's   
-    # single dict looks like: ids_1[0] {'athlete_id': 3, 'full_name': 'Пробеги 50 километров!'}
-    # after annotation
-    #ids_1 list of dicts 
-    # print(ids_1[0].__dict__)
+    """  
+    
+    ids = (Challenge.objects.values("full_name").annotate(max_id=Max("id"))        
+       .values_list("max_id", flat=True))   
     challenges = Challenge.objects.filter(id__in=ids).select_related("athlete")    
     data = ChallengeSummarySerializer(challenges,many=True).data     
     return Response(data=data,status=status.HTTP_200_OK)
 
 
-"""
-   
-before  
-{ 'id': 287, 'run_id': 47, 'latitude': 40.7675, 'longitude': -73.972, 'date_time': datetime.datetime(2025, 8, 19, 10, 10, tzinfo=datetime.timezone.utc), 'speed': 4.59, 'distance': 3.48}
 
-after  { 'id': 287, 'run_id': 47, 'latitude': 40.7675, 'longitude': -73.972, 'date_time': datetime.datetime(2025, 8, 19, 10, 10, tzinfo=datetime.timezone.utc), 'speed': 4.59, 'distance': 3.48}    
-    
-"""
+
