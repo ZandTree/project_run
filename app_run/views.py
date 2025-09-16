@@ -300,14 +300,14 @@ def showChallenges(request):
 def summ_challenges(request): 
     """
     summarize challenge data
-    """  
-    
-    ids = (Challenge.objects.values("full_name").annotate(max_id=Max("id"))        
-       .values_list("max_id", flat=True))   
-    challenges = Challenge.objects.filter(id__in=ids).select_related("athlete")    
+    """         
+    challenges = Challenge.objects.values("full_name").distinct()       
     data = ChallengeSummarySerializer(challenges,many=True).data     
     return Response(data=data,status=status.HTTP_200_OK)
 
+    
+
+    
 
 
 

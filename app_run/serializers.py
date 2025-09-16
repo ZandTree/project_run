@@ -103,25 +103,18 @@ class ChallengeSerializer(serializers.ModelSerializer):
 
 
 
-class ChallengeSummarySerializer(serializers.ModelSerializer):      
-    name_to_display = serializers.SerializerMethodField()
+class ChallengeSummarySerializer(serializers.Serializer): 
 
-    class Meta:
-        model = Challenge        
-        fields = ["name_to_display"]
-
-    def get_name_to_display(self,obj):
-        return obj.full_name
-
-
-    def to_representation(self, instance):                     
+    def to_representation(self, instance):   
+                       
         repr =  super().to_representation(instance)                
+        repr["name_to_display"] = instance["full_name"]   
         repr["athletes"] = []   
                                
         users = User.objects.filter(is_staff=False).prefetch_related(
-        "challenges").only("first_name","last_name","username")               
+        "challenges").only("first_name","last_name","username")                  
         for user in users:                                               
-            if instance.full_name in user.challenges.values_list("full_name",flat=True).distinct():            
+            if instance["full_name"] in user.challenges.values_list("full_name",flat=True).distinct():            
                 ser = ShortAthleteSerializer(user)                        
                 repr["athletes"].append(ser.data)                                    
         
