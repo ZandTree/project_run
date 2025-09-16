@@ -34,7 +34,7 @@ class ShortAthleteSerializer(AthleteSerializer):
         model = User          
         fields = ["id","username","full_name"] 
 
-    def get_full_name(self,obj):
+    def get_full_name(self,obj):        
         return f"{obj.first_name} {obj.last_name}"          
       
 
@@ -108,19 +108,22 @@ class ChallengeSummarySerializer(serializers.Serializer):
     def to_representation(self, instance):   
                        
         repr =  super().to_representation(instance)                
-        repr["name_to_display"] = instance["full_name"]   
+        repr["name_to_display"] = instance.full_name
         repr["athletes"] = []   
-                               
+        
         users = User.objects.filter(is_staff=False).prefetch_related(
-        "challenges").only("first_name","last_name","username")                  
-        for user in users:                                               
-            if instance["full_name"] in user.challenges.values_list("full_name",flat=True).distinct():            
-                ser = ShortAthleteSerializer(user)                        
-                repr["athletes"].append(ser.data)                                    
+        Prefetch("challenges", queryset=Challenge.objects.select_related("athlete").only("full_name","athlete_id").distinct(),to_attr="related_challenges")
+        ).only("first_name","last_name","username")       
+                                
+        for user in users:
+            for challange in user.related_challenges:                
+                if instance.full_name == challange.full_name:            
+                    ser = ShortAthleteSerializer(user)                        
+                    repr["athletes"].append(ser.data)
+                    break                                    
         
         return repr   
     
-
 class PositionSerializer(serializers.ModelSerializer):  
     date_time = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S.%f") 
     distance = serializers.FloatField(default=0)    
