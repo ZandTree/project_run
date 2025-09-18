@@ -314,9 +314,13 @@ def give_rating(request,coach_id):
     """
     rate_coach/<int:coach_id>/
     athlete id and rating are in request body
-    """    
-    athlete_id = get_object_or_404(User,id = request.data.get("athlete")) 
-    coach = get_object_or_404(User,id=coach_id)
+    """   
+    try:
+        athlete_id = User.objects.get(id = request.data.get("athlete"))   
+        coach = User.objects.get(id=coach_id)
+    except User.DoesNotExist:
+        return Response(status=status.HTTP_400_BAD_REQUEST) 
+
     rating = request.data.get("rating")
     if rating and isinstance(rating,int):        
         rating = int(rating)
@@ -326,7 +330,7 @@ def give_rating(request,coach_id):
             subscribe  = Subscribe.objects.get(coach_id=coach.id,runner_id=athlete_id)       
             subscribe.rating = rating
             subscribe.save()
-        except Subscribe.DoesNotExist:
+        except Subscribe.DoesNotExist:            
             return Response(status=status.HTTP_400_BAD_REQUEST)    
         
     else:
