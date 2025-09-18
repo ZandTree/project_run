@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db import connection
-from django.db.models import Avg, Count, F, Max, Q
+from django.db.models import Avg, Count, Max, Q
+from django.db.models.functions import Round
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from openpyxl import load_workbook
@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from app_run.models import (AthleteInfo, Challenge, CollectibleItem, Position,
-                            Run)
+                            Run, Subscribe)
 
 from .pagination import CustomPagination
 from .serializers import (AthleteInfoSerializer, ChallengeSerializer,
@@ -64,7 +64,8 @@ class FilterAthletesClass(viewsets.ReadOnlyModelViewSet):
         users selected via url query params: 
         qs only coaches vs qs only athlete
         """
-        qs = self.queryset                          
+        # qs = self.queryset 
+        qs = self.queryset.annotate(rating=Round((Avg('coaches__rating')),2))                        
         type = self.request.query_params.get("type",None) 
         if type:
             if type == "coach":
@@ -308,7 +309,29 @@ def summ_challenges(request):
     return Response(data=data,status=status.HTTP_200_OK)
 
     
-
+@api_view(['POST'])
+def give_rating(request,coach_id):
+    """
+    rate_coach/<int:coach_id>/
+    athlete id and rating are in request body
+    """    
+    athlete_id = get_object_or_404(User,id = request.data.get("athlete")) 
+    rating = request.data.get("rating")
+    coach = get_object_or_404(User,id=coach_id)
+    if not rating or (rating < 1 or rating >5):        
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    try:
+        subscribe  = get_object_or_404(Subscribe,coach_id=coach.id,runner_id=athlete_id) 
+        if subscribe:
+            subscribe.rating = rating
+            subscribe.save()
+        
+    except Subscribe.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+            
+    return Response(status=status.HTTP_200_OK)
+    
+    
     
 
 

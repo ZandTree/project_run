@@ -17,7 +17,7 @@ class AthleteInfoAdmin(admin.ModelAdmin):
     list_display = ['id','user_id',"goals",'weight']
 
 class SubscribeAdmin(admin.ModelAdmin):
-    list_display = ['id','coach_id',"runner_id"]
+    list_display = ['id','coach_id',"runner_id","rating"]
 
 class ChellangeAdmin(admin.ModelAdmin):
     list_display = ['id','full_name','athlete'] 

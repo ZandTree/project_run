@@ -68,8 +68,18 @@ class CollectibleItem(models.Model):
 
 
 class Subscribe(models.Model):
-    coach = models.ForeignKey(User,related_name="runners",on_delete=models.CASCADE)
-    runner = models.ForeignKey(User,related_name="coaches",on_delete=models.CASCADE)
+    RATING = (
+        (1, 'One'),
+        (2, 'Two'),
+        (3, 'Three'),
+        (4, 'Four'),
+        (5, 'Five'),
+        (None, 'unknown')
+    )
+          
+    coach = models.ForeignKey(User,related_name="coaches",on_delete=models.CASCADE)
+    runner = models.ForeignKey(User,related_name="runners",on_delete=models.CASCADE)
+    rating = models.PositiveSmallIntegerField(choices=RATING,default=None,blank=True,null=True)
     
     class Meta:
         unique_together = ('coach', 'runner')

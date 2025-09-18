@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.db.models import Exists, Max, OuterRef, Prefetch
+from django.db.models import Prefetch
 from rest_framework import serializers
 
 from .models import (AthleteInfo, Challenge, CollectibleItem, Position, Run,
@@ -10,9 +10,10 @@ from .utils import check_float_digits
 class UserSerializer(serializers.ModelSerializer):    
     type = serializers.SerializerMethodField()
     runs_finished = serializers.IntegerField(source="count",read_only=True)    
+    rating = serializers.FloatField(read_only=True)    
     class Meta:
         model = User       
-        fields = ["id","type","runs_finished","username","date_joined","last_name","first_name"]
+        fields = ["id","type","runs_finished","username","date_joined","last_name","first_name","rating"]
 
     def get_type(self,obj)->str|None:
         type = None
