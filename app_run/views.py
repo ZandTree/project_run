@@ -316,12 +316,12 @@ def give_rating(request,coach_id):
     athlete id and rating are in request body
     """    
     athlete_id = get_object_or_404(User,id = request.data.get("athlete")) 
-    rating = request.data.get("rating")
     coach = get_object_or_404(User,id=coach_id)
+    rating = request.data.get("rating")
     if not rating or (rating < 1 or rating >5):        
         return Response(status=status.HTTP_400_BAD_REQUEST)
     try:
-        subscribe  = get_object_or_404(Subscribe,coach_id=coach.id,runner_id=athlete_id) 
+        subscribe  = Subscribe.objects.get(coach_id=coach.id,runner_id=athlete_id) 
         if subscribe:
             subscribe.rating = rating
             subscribe.save()
