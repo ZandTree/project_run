@@ -314,12 +314,16 @@ def give_rating(request,coach_id):
     """
     rate_coach/<int:coach_id>/
     athlete id and rating are in request body
-    """   
+    """ 
+    # check for the athlete  
     try:
         athlete_id = User.objects.get(id = request.data.get("athlete"))   
-        coach = User.objects.get(id=coach_id)
+        
     except User.DoesNotExist:
         return Response(status=status.HTTP_400_BAD_REQUEST) 
+    # check for the athlete
+    coach = get_object_or_404(User,id=coach_id)
+    
 
     rating = request.data.get("rating")
     if rating and isinstance(rating,int):        
