@@ -245,10 +245,10 @@ class CoachAnaliticSerializer(serializers.Serializer):
        
         longest_user  = (Run.objects.select_related("athlete").filter(athlete_id__in=coach_athletes).annotate(max_dist=Max("distance"))).order_by("max_dist").last()
 
-        longest_user = users.order_by("max_dist").last()
 
         users = User.objects.filter(id__in=coach_athletes).annotate(max_dist=Max("runs__distance"),total_dist=Sum("runs__distance"),avg_speed=Avg("runs__speed"))       
         
+        longest_user = users.order_by("max_dist").last()
         user_total = users.order_by("total_dist").last()
         user_speed = users.order_by("avg_speed").last()
         
