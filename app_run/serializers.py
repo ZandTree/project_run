@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.db.models import Prefetch
+from django.db.models import Avg, Max, OuterRef, Prefetch, Subquery, Sum
 from rest_framework import serializers
 
 from .models import (AthleteInfo, Challenge, CollectibleItem, Position, Run,
@@ -231,4 +231,35 @@ class UserAthleteSerializer(UserSerializer):
         coach = obj.coaches.values_list("coach_id",flat=True).last()         
         return coach    
 
-     
+class CoachAnaliticSerializer(serializers.Serializer):  
+    
+
+    def to_representation(self, instance):
+        """
+        instance of athlete
+        """       
+        repr = super().to_representation(instance) 
+           
+        coach_athletes = (Subscribe.objects.select_related("coach","runner").filter(coach=instance).
+        values_list("runner_id",flat=True))      
+       
+        longest_user  = (Run.objects.select_related("athlete").filter(athlete_id__in=coach_athletes).annotate(max_dist=Max("distance"))).order_by("max_dist").last()
+
+        longest_user = users.order_by("max_dist").last()
+
+        users = User.objects.filter(id__in=coach_athletes).annotate(max_dist=Max("runs__distance"),total_dist=Sum("runs__distance"),avg_speed=Avg("runs__speed"))       
+        
+        user_total = users.order_by("total_dist").last()
+        user_speed = users.order_by("avg_speed").last()
+        
+        repr["longest_run_user"] = longest_user.id
+        repr["longest_run_value"] = round(longest_user.max_dist,2)  
+        repr["total_run_user"] = user_total.id
+        repr["total_run_value"] = round(user_total.total_dist,2)  
+        repr["speed_avg_user"] = user_speed.id
+        repr["speed_avg_value"] = round(user_speed.avg_speed,2)
+        
+        return repr  
+        
+         
+    

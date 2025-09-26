@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import Avg, Count, Max, Q
+from django.db.models import Avg, Count, Max, OuterRef, Q, Subquery
 from django.db.models.functions import Round
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -16,7 +16,7 @@ from app_run.models import (AthleteInfo, Challenge, CollectibleItem, Position,
 
 from .pagination import CustomPagination
 from .serializers import (AthleteInfoSerializer, ChallengeSerializer,
-                          ChallengeSummarySerializer,
+                          ChallengeSummarySerializer, CoachAnaliticSerializer,
                           CollectibleItemSerializer, PositionSerializer,
                           RunSerializer, SubscribeSerializer,
                           UserAthleteSerializer, UserCoachSerializer,
@@ -269,9 +269,9 @@ class SubscribeView(APIView):
         coach_id (subscribe_to_coach/<int:id>) and athlete id(body)
         to create a new subscription       
         """
-        coach = get_object_or_404(User,id = id) 
+        coach = get_object_or_404(User,id = id,is_staff=True,is_superuser=False) 
         try:
-            runner = User.objects.get(id = request.data["athlete"])          
+            runner = User.objects.get(id = request.data["athlete"],is_staff=False)          
         except User.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)             
         inp = {"coach":coach.id,"runner":runner.id}        
@@ -341,8 +341,47 @@ def give_rating(request,coach_id):
         return Response(status=status.HTTP_400_BAD_REQUEST)
             
     return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_stat(request,coach_id):
+    """
+    'longest_run_user':  # Id Бегуна который сделал самый длинный забег у этого Тренера 
     
+    """    
+    coach = get_object_or_404(User,id=coach_id) 
     
+    data = CoachAnaliticSerializer(coach).data          
+    
+
+    return Response(data=data,status=status.HTTP_200_OK)
+    # {'_state': <django.db.models.base.ModelState object at 0x00000200568BA0E0>, 'id': 1, 'password': 'pbkdf2_sha256$1000000$8cP9tIcvAbhm7yMvWZ9BMp$emi97jDb8umRbycNa7BVMDN7qD6oXnF2/lNRLdLJwi4=', 'last_login': datetime.datetime(2025, 9, 15, 15, 44, 27, 436012, tzinfo=datetime.timezone.utc), 'is_superuser': True, 'username': 'tata', 'first_name': 'tata', 'last_name': 'riogrande', 'email': 'tata@mail.com', 'is_staff': True, 'is_active': True, 'date_joined': datetime.datetime(2025, 7, 19, 21, 18, 37, tzinfo=datetime.timezone.utc), 'latest_distance': None}         
+    # athlete = (User.objects.filter(id__in = coach_athletes)              
+               
+    # .annotate(longest_run_value=Max('runs__distance'),filter=Q(runs__status="finished"))
+    # .order_by('longest_run_value')).last()
+    # data = CoachAnaliticSerializer(athlete).data          
+    # latest_run = Run.objects.filter(athlete=OuterRef("pk")) # only in subquery    
+    # users = (
+    # User.objects
+    #     .annotate(
+    #         latest_distance=Subquery(latest_run.values("distance")[:1]),
+            
+    #     )
+    # )
+    # print(users[0].__dict__)
+    # users = (
+    #     User.objects
+    #         .annotate(
+    #             latest_distance=Subquery(runs.values("distance")[:1]),
+                
+    #         )
+    #     )
+    # # {'_state': <django.db.models.base.ModelState object at 0x00000200568BA0E0>, 'id': 1, 'password': 'pbkdf2_sha256$1000000$8cP9tIcvAbhm7yMvWZ9BMp$emi97jDb8umRbycNa7BVMDN7qD6oXnF2/lNRLdLJwi4=', 'last_login': datetime.datetime(2025, 9, 15, 15, 44, 27, 436012, tzinfo=datetime.timezone.utc), 'is_superuser': True, 'username': 'tata', 'first_name': 'tata', 'last_name': 'riogrande', 'email': 'tata@mail.com', 'is_staff': True, 'is_active': True, 'date_joined': datetime.datetime(2025, 7, 19, 21, 18, 37, tzinfo=datetime.timezone.utc), 'latest_distance': None}         
+
+            
+    
+   
     
 
 
