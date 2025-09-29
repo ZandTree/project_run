@@ -74,10 +74,8 @@ def parse_positions(prev_position,next_position):
     """     
     prev_coords = (prev_position.latitude,prev_position.longitude )
     next_coords = (next_position.latitude,next_position.longitude)
-    dist_between_points = distance(next_coords,prev_coords).m  
-    print("line 79 dist between ", dist_between_points) 
-    _time = next_position.date_time - prev_position.date_time 
-    print("line 81 time ", _time) 
+    dist_between_points = distance(next_coords,prev_coords).m      
+    _time = next_position.date_time - prev_position.date_time     
     time_in_seconds = _time.total_seconds() 
     if time_in_seconds > 0:
             speed = round(dist_between_points/time_in_seconds,2) 

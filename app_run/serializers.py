@@ -244,18 +244,24 @@ class CoachAnaliticSerializer(serializers.Serializer):
         values_list("runner_id",flat=True))      
        
         runs = (Run.objects.filter(athlete_id__in=coach_athletes).values("athlete_id").annotate(max_single_dist=Max("distance"),avg_speed=Avg("speed"),summ_dist=Sum("distance")))
-        
-        longest_user = runs.order_by("max_single_dist").last()        
-        user_total = runs.order_by("summ_dist").last()
-        user_speed = runs.order_by("avg_speed").last()
 
-        
-        repr["longest_run_user"] = longest_user["athlete_id"]
-        repr["longest_run_value"] = round(longest_user["max_single_dist"],2)  
-        repr["total_run_user"] = user_total["athlete_id"]
-        repr["total_run_value"] = round(user_total["summ_dist"],2)  
-        repr["speed_avg_user"] = user_speed["athlete_id"]
-        repr["speed_avg_value"] = round(user_speed["avg_speed"],2)
+        if coach_athletes and runs:
+            longest_user = runs.order_by("max_single_dist").last()        
+            user_total = runs.order_by("summ_dist").last()
+            user_speed = runs.order_by("avg_speed").last()            
+            repr["longest_run_user"] = longest_user["athlete_id"]
+            repr["longest_run_value"] = round(longest_user["max_single_dist"],2)  
+            repr["total_run_user"] = user_total["athlete_id"]
+            repr["total_run_value"] = round(user_total["summ_dist"],2)  
+            repr["speed_avg_user"] = user_speed["athlete_id"]
+        elif coach_athletes:            
+            single_athlete = User.objects.get(id=coach_athletes[0])
+            repr["longest_run_user"] = single_athlete.id
+            repr["longest_run_value"] = 0  
+            repr["total_run_user"] = single_athlete.id
+            repr["total_run_value"] = 0  
+            repr["speed_avg_user"] = 0
+
         
         
         return repr  

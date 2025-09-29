@@ -23,7 +23,7 @@ urlpatterns = [
     path('subscribe_to_coach/<int:id>/',SubscribeView.as_view(),name="subscribe"),
     path('challenges_summary/',summ_challenges,name="challenges_summary"),
     path('rate_coach/<coach_id>/', give_rating,name="rating"),
-    path('analytics_for_coach/<coach_id>/',get_stat),
+    path('analytics_for_coach/<coach_id>/',get_stat,name="statistic"),
     path('',include(router.urls),name="collectible_item"),    
     path('',include(router.urls),name="runs"),
     path('',include(router.urls),name='users'),    
