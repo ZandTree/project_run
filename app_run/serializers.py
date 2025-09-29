@@ -254,13 +254,15 @@ class CoachAnaliticSerializer(serializers.Serializer):
             repr["total_run_user"] = user_total["athlete_id"]
             repr["total_run_value"] = round(user_total["summ_dist"],2)  
             repr["speed_avg_user"] = user_speed["athlete_id"]
+            repr["speed_avg_value"] = user_speed["avg_speed"]
         elif coach_athletes:            
             single_athlete = User.objects.get(id=coach_athletes[0])
             repr["longest_run_user"] = single_athlete.id
             repr["longest_run_value"] = 0  
             repr["total_run_user"] = single_athlete.id
             repr["total_run_value"] = 0  
-            repr["speed_avg_user"] = 0
+            repr["speed_avg_user"] = single_athlete.id
+            repr["speed_avg_value"] = 0
 
         
         
