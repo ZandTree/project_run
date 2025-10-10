@@ -236,14 +236,15 @@ class CoachAnaliticSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         """
-        instance of athlete
+        instance of coach
         """       
         repr = super().to_representation(instance) 
            
         coach_athletes = (Subscribe.objects.select_related("coach","runner").filter(coach=instance).
-        values_list("runner_id",flat=True))      
+        values_list("runner_id",flat=True))
        
         runs = (Run.objects.filter(athlete_id__in=coach_athletes).values("athlete_id").annotate(max_single_dist=Max("distance"),avg_speed=Avg("speed"),summ_dist=Sum("distance")))
+         
 
         if coach_athletes and runs:
             longest_user = runs.order_by("max_single_dist").last()        
@@ -267,6 +268,8 @@ class CoachAnaliticSerializer(serializers.Serializer):
         
         
         return repr  
+        
+
         
          
     
