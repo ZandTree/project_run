@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import Avg, Count, Max, OuterRef, Q, Subquery
+from django.db.models import Avg, Count, Max, Q, Sum
 from django.db.models.functions import Round
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -16,7 +16,7 @@ from app_run.models import (AthleteInfo, Challenge, CollectibleItem, Position,
 
 from .pagination import CustomPagination
 from .serializers import (AthleteInfoSerializer, ChallengeSerializer,
-                          ChallengeSummarySerializer, CoachAnaliticSerializer,
+                          ChallengeSummarySerializer,
                           CollectibleItemSerializer, PositionSerializer,
                           RunSerializer, SubscribeSerializer,
                           UserAthleteSerializer, UserCoachSerializer,
@@ -349,9 +349,24 @@ def get_stat(request,coach_id):
     take coach id and show statistic
     
     """    
-    coach = get_object_or_404(User,id=coach_id) 
-    
-    data = CoachAnaliticSerializer(coach).data          
+    coach = get_object_or_404(User,id=coach_id)
+    coach_athletes = (Subscribe.objects.select_related("coach","runner").filter(coach=coach).
+        values_list("runner_id",flat=True))
+       
+    runs = (Run.objects.filter(athlete_id__in=coach_athletes).values("athlete_id").annotate(max_single_dist=Max("distance"),avg_speed=Avg("speed"),summ_dist=Sum("distance")))
+
+    if coach_athletes and runs:
+        longest_user = runs.order_by("max_single_dist").last()        
+        user_total = runs.order_by("summ_dist").last()
+        user_speed = runs.order_by("avg_speed").last() 
+        data = {            
+        "longest_run_user": longest_user.get("athlete_id"),
+        "longest_run_value": longest_user.get("max_single_dist"),  
+        "total_run_user": user_total.get("athlete_id"),
+        "total_run_value": user_total.get("summ_dist"),  
+        "speed_avg_user": user_speed.get("athlete_id"),
+        "speed_avg_value": user_speed.get("avg_speed")
+        }
     
 
     return Response(data=data,status=status.HTTP_200_OK)
