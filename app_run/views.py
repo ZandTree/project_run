@@ -353,7 +353,7 @@ def get_stat(request,coach_id):
     coach_athletes = (Subscribe.objects.select_related("coach","runner").filter(coach=coach).
         values_list("runner_id",flat=True))
        
-    runs = (Run.objects.filter(athlete_id__in=coach_athletes).values("athlete_id").annotate(max_single_dist=Max("distance"),avg_speed=Avg("speed"),summ_dist=Sum("distance")))
+    runs = (Run.objects.filter(athlete_id__in=coach_athletes,status="finished")            .values("athlete_id").annotate(max_single_dist=Max("distance"),avg_speed=Avg("speed"),summ_dist=Sum("distance")))
 
     if coach_athletes and runs:
         longest_user = runs.order_by("max_single_dist").last()        
@@ -367,6 +367,7 @@ def get_stat(request,coach_id):
         "speed_avg_user": user_speed.get("athlete_id"),
         "speed_avg_value": user_speed.get("avg_speed")
         }
+        
     
 
     return Response(data=data,status=status.HTTP_200_OK)
